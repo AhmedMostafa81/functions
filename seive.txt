@@ -1,0 +1,16 @@
+    int n;cin>>n;
+    bool ch[n+5]={0};
+    ch[1]=1;
+    cout <<"\n";
+    for (int i =2;i*i<=100;i++){
+        if (is_prime(i)){
+            int z=i*i;
+            while (z<=n){
+                ch[z]=1;
+                z+=i;
+            }
+        }
+    }
+    for(int i =1;i<=n;i++){
+        if (!ch[i])cout <<i<<" ";
+    }

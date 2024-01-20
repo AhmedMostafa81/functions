@@ -1,0 +1,9 @@
+#define pb push_back
+#define F first
+#define S second
+#define all(a)  a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+using ll = long long;
+using ii = pair<int,int>;
+#define pb push_back
+#define pf push_front
