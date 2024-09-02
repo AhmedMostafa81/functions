@@ -15,7 +15,7 @@ void take (auto &v) {for (auto &inp:v)cin>>inp;}
 void print(auto &v) {for (auto &t:v)cout <<t<<" ";cout <<"\n";}
 #define YN(X) cout << ( X ? "Yes\n" : "No\n" );
 
-/*                        ->    my dirty code    <-                        */
+/*                        ->    NO CLEAN CODE HERE    <-                        */
 
 void pewpew() {
 
