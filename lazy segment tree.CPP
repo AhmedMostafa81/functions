@@ -63,12 +63,12 @@ struct lazy_segment_tree{
         update(l,r,val,0,0,sz);
     }
 
-    Node mn(int l,int r,int node,int lx,int rx){
+    Node mn(int l,int r,int node,int s,int e){
         prop(node);
-        if (lx >= r || rx <= l) return neutral;
-        if (lx>=l && rx<=r)return tree[node];
-        int mid=(lx+rx)/2;
-        return merge( mn(l,r,node*2+1,lx,mid),mn(l,r,node*2+2,mid,rx));
+        if (s >= r || e <= l) return neutral;
+        if (s>=l && e<=r)return tree[node];
+        int mid=(s+e)/2;
+        return merge( mn(l,r,node*2+1,s,mid),mn(l,r,node*2+2,mid,e));
     }
 
     int mn(int l,int r){
