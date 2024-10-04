@@ -1,26 +1,46 @@
-struct sparseTable{
+template < typename T = int > struct Sparse_Table {
 
-    int table[N][20] = {};
-    int logs[N];
-    void pre() {
-        for(int i = 2; i < N; i++)
-            logs[i] = logs[i / 2] + 1;
+    struct Node {
+        ll val;
+        Node(ll V = 0) : val(V) {}
+        Node operator = (const T& rhs) {
+            val = rhs;
+            return *this;
+        }
+    };
+
+    int n, LOG;
+    vector < vector < Node > > table;
+    vector < int > Bin_Log;
+    Node DEFAULT;
+
+    Sparse_Table(vector < T >& vec){
+        n = sz(vec), DEFAULT = 0, LOG = __lg(n) + 1;
+        table = vector < vector < Node > > (n + 10, vector < Node > (LOG));
+        Bin_Log = vector < int > (n + 10);
+        for(int i = 2; i <= n; i++)
+            Bin_Log[i] = Bin_Log[i >> 1] + 1;
+        for(int i = 0; i < n; i++)
+            table[i][0] = vec[i];
+        Build_Table();
+    }
+
+    Node operation(Node a, Node b){
+        Node res;
+        res.val = a.val + b.val;
+        return res;
+    }
+
+    void Build_Table(){
+        for(int log = 1; log < LOG; log++)
+            for(int i = 0; i + (1 << log) - 1 < n; i++)
+                table[i][log] = operation(table[i][log - 1], table[i + (1 << (log - 1))][log - 1]);
+    }
+
+    Node query_1(int L, int R){
+        int log = Bin_Log[R - L + 1];
+        return operation(table[L][log], table[R - (1 << log) + 1][log]);
     }
     
-    void build(int n)
-    {
-        for(int i = 0; i < n; i++)
-            table[i][0] = arr[i];
 
-        for(int j = 1; j <= logs[n]; j++)
-        {
-            for(int i = 0; i <= n - (1 << j); i++)
-                table[i][j] = __gcd(table[i][j - 1], table[i + (1 << (j - 1))][j - 1]);
-        }
-    }
-    int query(int l, int r)
-    {
-        int sz = logs[r - l + 1];
-        return __gcd(table[l][sz], table[r - (1 << sz) + 1][sz]);
-    }
 };
