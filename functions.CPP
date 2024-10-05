@@ -1,3 +1,5 @@
+v.resize(unique(v.begin(), v.end()) - v.begin());
+
 ll gcd(ll x, ll y) { return (!y ? x : gcd(y, x % y)); }
  
 ll lcm(ll x, ll y) { return x / gcd(x, y) * y; }
