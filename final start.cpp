@@ -7,7 +7,6 @@ using namespace std;
 #define rall(a) a.rbegin(),a.rend()
 #define pf push_front
 #define pb push_back
-#define inf 2e16
 #define SZ(x) ((int)(x).size())
 #define AhmedPlusPlus ios::sync_with_stdio(0);cin.tie(0);cout.tie(0);
 #define YN(X) cout << ( X ? "Yes\n" : "No\n" );
