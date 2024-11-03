@@ -10,6 +10,7 @@ using namespace std;
 #define SZ(x) ((int)(x).size())
 #define AhmedPlusPlus ios::sync_with_stdio(0);cin.tie(0);cout.tie(0);
 #define YN(X) cout << ( X ? "Yes\n" : "No\n" );
+#define hi cerr<<"HI\n";
 
 /*                        ->    NO CLEAN CODE HERE    <-                        */
 
