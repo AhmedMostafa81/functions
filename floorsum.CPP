@@ -8,8 +8,8 @@ long long FloorSumAP(long long a, long long b, long long c, long long n){
 
 
 
-//  g ->  floor sum
-//  h -> (floor sum)^2
+//  g ->  sum of floor((a * i + b) / c) for i in [0, n] in O(log(n))
+//  h -> sum of (floor((a * i + b) / c) )^2 for i in [0, n] in O(log(n))
 
 struct dat {
   long long f, g, h;
