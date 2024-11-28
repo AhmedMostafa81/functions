@@ -1,3 +1,4 @@
+#include<bits/stdc++.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -6,16 +7,18 @@
 #include <ctime>   // For time()
 
 using namespace std;
+#define int long long
+mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
 
-// Function to generate and save a single test case to a text file
+int Random(int l,int r) {
+    return l + (rng()%(r-l+1));
+}
+
 void generateAndSaveTestCase(int testCaseNumber) {
-    // Generate your test case here
-    // For example, generating a random integer between 1 and 100
-    int testCase = rand() % 30 + 1;
 
     // Create a filename for the test case
     ostringstream filenameStream;
-    filenameStream << "test_case__" << setw(3) << setfill('0') << testCaseNumber << ".txt";
+    filenameStream << "test_case--------" << setw(3) << setfill('0') << testCaseNumber << ".txt";
     string filename = filenameStream.str();
 
     // Open the file for writing
@@ -26,10 +29,13 @@ void generateAndSaveTestCase(int testCaseNumber) {
         return;
     }
 
+    const int N = 1e5;
+    int n = N ;
     // Save the test case to the file
-    outputFile << testCase << endl;
-    for (int i =0;i<testCase;i++){
-        outputFile<< testCase+rand()%30<<" ";
+    int start_val = 1, end_val = 1e9;
+    outputFile << n << endl;
+    for (int i =0;i<n;i++){
+        outputFile<< Random(start_val , end_val) <<" ";
     }
 
     // Close the file
@@ -38,8 +44,8 @@ void generateAndSaveTestCase(int testCaseNumber) {
     cout << "Test case " << testCaseNumber << " saved to " << filename << endl;
 }
 
-int main() {
-    int numTestCases = 10; // Change this to the number of test cases you want
+signed main() {
+    int numTestCases = 5; // Change this to the number of test cases you want
 
     // Seed the random number generator
     srand(time(nullptr));
@@ -49,5 +55,4 @@ int main() {
         generateAndSaveTestCase(i);
     }
 
-    return 0;
 }
