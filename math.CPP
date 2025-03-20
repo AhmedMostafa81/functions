@@ -1,3 +1,11 @@
+/*
+to get sum 2^(0*n) + 2^(1*n) + 2^(2*n) + 2^(3*n) + 2^(4*n) + .... + 2^(k*n)
+
+ the formula is
+    (   (2 ^ ((k+1)*n)) - 1   ) /   (  2^n - 1   )
+
+*/
+
 double LOG( int x, int k){
     double answer;
     answer = log10( x ) / log10( k );
