@@ -13,15 +13,40 @@ double LOG( int x, int k){
 }
 
 const int N = 2e5+7, P1 = 31, P2 = 37, mod= 1e9 + 7;
- 
+
+bitset<N> notPrime;
+void sieve() {
+    notPrime[0] = notPrime[1] = 1;
+    for(int i = 2; i*i < N; i++) {
+        if(notPrime[i]) continue;
+
+        for(int j = i*i; j < N; j+=i)
+            notPrime[j] = 1;
+    }
+}
+
 int spf[N];
-void primes(){
-    for (int i =0;i<N;i++)spf[i]=i;
-    for (int i=2;i*i<N;i++){
-	if(spf[i] != i) continue;
-        for (int j=i*i;j<N;j+=i)
-            spf[j]=min(i,spf[j]);
-	}
+void SPF() {
+    for(int i = 1; i < N; i++)
+        spf[i] = i;
+    for(int i = 2; i*i < N; i++) {
+        if(spf[i] != i) continue;
+
+        for(int j = i*i; j < N; j+=i)
+            spf[j] = min(spf[j], i);
+    }
+}
+
+short spf[N];
+void SPF() {
+    for(int i = 2; i*i < N; i++) {
+        if(spf[i] != 0) continue;
+
+        for(int j = i*i; j < N; j+=i) {
+            if(spf[j] == 0)
+                spf[j] = i;
+        }
+    }
 }
 
 int mul(int a, int b) {
@@ -47,22 +72,36 @@ int fp(int b, int p) {
     return ret;
 }
  
-ll modInv(ll n) {
-    return fp(n, mod - 2);
+int inv(int a) {
+    return fastPower(a, mod-2);
+}
+
+int divi(int a, int b) {
+    return mult(a, inv(b));
 }
  
-ll fact[N], inv[N];
- 
-void pre() {
-    fact[0] = inv[0] = 1;
-    for (ll i = 1; i < N; i++)
-        fact[i] = (fact[i - 1] * i) % mod, inv[i] = fp(fact[i], mod - 2);
+int fact[N];
+
+
+int nPr(int n, int r) {
+    if(r > n) return 0;
+    if(n < 0 || r < 0) return 0;
+    return divi(fact[n], fact[n-r]);
 }
- 
-ll nCr(ll n, ll r) {
-    return ((fact[n] * inv[r]) % mod * inv[n - r]) % mod;
+
+int nCr(int n, int r) {
+    if(r > n) return 0;
+    if(n < 0 || r < 0) return 0;
+    return divi(fact[n], mult(fact[r], fact[n-r]));
 }
- 
-ll nPr(ll n, ll r) {
-    return ((fact[n] * inv[n - r])) % mod;
+
+int sNb(int n, int k) {
+    return nCr(n+k-1, n);
+}
+
+void precalFactorial() {
+    fact[0] = 1;
+
+    for(int i =1 ; i < N; i++)
+        fact[i] = mult(fact[i-1], i);
 }
