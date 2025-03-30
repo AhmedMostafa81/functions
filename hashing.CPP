@@ -1,4 +1,4 @@
-const int N =4e5+5 , base[2]={31,37},mod=1e9+7;
+const int N =  , base[2]={31,37},mod=1e9+7;
 int pw[2][N];
 int add(int a,int b) {
     return (a+b+mod)%mod;
