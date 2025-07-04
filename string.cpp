@@ -67,3 +67,21 @@ signed main() {
     cout << ans << '\n';
 
 }
+///////////////////////////////////////////////////////////////////////////////////////
+Tricks
+
+// Number of distinct substrings in a string
+/*
+To count distinct substrings of a string s, append characters one by one and track new substrings.
+When adding a character c to s, form t = s + c, then reverse t to turn suffixes into prefixes.
+Compute the Z-function of reversed t to find the longest prefix that repeats elsewhere (z_max).
+The number of new substrings ending in c is length(t) - z_max.
+Summing this over all characters gives total distinct substrings.
+The total time complexity is O(n²) for a string of length n.
+*/
+
+
+
+
+
+
