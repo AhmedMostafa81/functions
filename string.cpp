@@ -79,6 +79,25 @@ The number of new substrings ending in c is length(t) - z_max.
 Summing this over all characters gives total distinct substrings.
 The total time complexity is O(n²) for a string of length n.
 */
+/////////////////////////////////////////////////////////////////////////////////////
+// freq of each one
+/*
+    string s;cin>>s;
+    string t ;
+    vector<int>fr(n+1) , ans(n+5);
+    for(int i = n-1; i >= 0 ; --i){
+        t = s[i] + t;
+        vector<int>z = Z(t);
+        z[0] = n - i;
+        vector<int>tmp(n+2);
+        for (auto j:z)tmp[0]++ , tmp[j+1]--;
+        for (int j = 1 ; j <= n ;++j)
+            tmp[j] += tmp[j-1] , fr[tmp[j]]++;
+    }
+    int prv = 0;
+    for (int i = n  ; i >= 1 ; --i)
+        fr[i] -= prv , prv += fr[i];
+*/
 
 
 
