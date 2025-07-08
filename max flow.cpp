@@ -2,6 +2,9 @@
 // maximum edge disjoint path (no two paths share the same edge)
 // maximum independent path (no two paths share the same edge or the same node) (add constraint on vertex)
 
+// minimum path cover (minimum number of paths that covers all graph without sharing edges) (DAG)
+//   = n - max_matching
+
 
 // slow max flow
 
