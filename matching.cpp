@@ -1,3 +1,7 @@
+//  maximum bipartite matching == minimum vertex cover(minimum number of nodes that cover all edges)
+
+
+
 int n, k;
 vector<vector<int>> g;
 vector<int> mt;
