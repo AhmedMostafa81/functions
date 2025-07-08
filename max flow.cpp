@@ -1,3 +1,6 @@
+//    ->     max flow == min cut (edges have cost and i want to get minimum cost to disconnect src and sink)
+
+
 // slow max flow
 
 #include<bits/stdc++.h>
