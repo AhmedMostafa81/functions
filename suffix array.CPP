@@ -100,3 +100,16 @@ vector<int>suffix_array(string &tmp){
     }
     return p;
 }
+
+// to build LCP (longest common prefix)
+
+    lcp = vector<int>(n);
+    k = 0;
+    for (int i = 0 ; i < n -1 ; i++){
+        int pi = c[i];
+        int j = p[pi-1];
+        // lcp[i] = lcp(s[i..] , s[j..])
+        while(s[i+k] == s[j+k])k++;
+        lcp[pi] = k;
+        k = max(0ll , k-1);
+    }
