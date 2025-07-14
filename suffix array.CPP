@@ -1,4 +1,5 @@
 // very important note : if you want to concatenate two strings use this s = s1 + "*" + s2; 
+// not "#" or "$"
 
 
 //   n * log^2
