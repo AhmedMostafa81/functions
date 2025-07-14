@@ -1,4 +1,7 @@
- //   n * log^2
+// very important note : if you want to concatenate two strings use this s = s1 + "*" + s2; 
+
+
+//   n * log^2
 
 vector<int>suffix_array(string &tmp){
     string s = tmp + "$";
