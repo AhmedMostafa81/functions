@@ -1,3 +1,5 @@
+ //   n * log^2
+
 vector<int>suffix_array(string &tmp){
     string s = tmp + "$";
     int n = s.size();
@@ -38,6 +40,7 @@ vector<int>suffix_array(string &tmp){
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 //   fast suffix array
+//   n * log
 
 void count_sort(vector<int>&p , vector<int>&c){
     int n = p.size();
