@@ -569,7 +569,7 @@ void tar(int node,int par){
                 br.push_back({ch,node});
             lowlink[node] = min(lowlink[node],lowlink[ch]);
         }
-        else {
+        else if (!col[ch]){
             lowlink[node] = min(lowlink[node],dfn[ch]);
         }
     }
