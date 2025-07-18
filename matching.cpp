@@ -39,12 +39,13 @@ int main() {
 
 struct HopcroftKarp { // one based
     static const int inf = 1e16;
-    int n;
+    int n , m;
     vector<int> l, r, d;
     vector<vector<int>> g;
 
     HopcroftKarp(int _n, int _m) {
         n = _n;
+        m = _m;
         int p = _n + _m + 1;
         g.resize(p);
         l.resize(p, 0);
@@ -109,7 +110,7 @@ struct HopcroftKarp { // one based
         return res;
     }
 
-        pair<vector<int>, vector<int>> get_min_vertex_cover() {
+    pair<vector<int>, vector<int>> get_min_vertex_cover() {
         maximum_matching();
         vector<bool> visL(n + 1, false), visR(m + 1, false);
 
