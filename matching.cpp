@@ -42,6 +42,7 @@ struct HopcroftKarp { // one based
     int n;
     vector<int> l, r, d;
     vector<vector<int>> g;
+
     HopcroftKarp(int _n, int _m) {
         n = _n;
         int p = _n + _m + 1;
@@ -50,9 +51,11 @@ struct HopcroftKarp { // one based
         r.resize(p, 0);
         d.resize(p, 0);
     }
+
     void add_edge(int u, int v) {
-        g[u].push_back(v + n); //right id is increased by n, so is l[u]
+        g[u].push_back(v + n); // right id is increased by n
     }
+
     bool bfs() {
         queue<int> q;
         for (int u = 1; u <= n; u++) {
@@ -72,10 +75,11 @@ struct HopcroftKarp { // one based
         }
         return d[0] != inf;
     }
+
     bool dfs(int u) {
         if (!u) return true;
         for (auto v : g[u]) {
-            if(d[r[v]] == d[u] + 1 && dfs(r[v])) {
+            if (d[r[v]] == d[u] + 1 && dfs(r[v])) {
                 l[u] = v;
                 r[v] = u;
                 return true;
@@ -84,74 +88,28 @@ struct HopcroftKarp { // one based
         d[u] = inf;
         return false;
     }
+
     int maximum_matching() {
         int ans = 0;
         while (bfs()) {
-            for(int u = 1; u <= n; u++) if (!l[u] && dfs(u)) ans++;
+            for (int u = 1; u <= n; u++) {
+                if (!l[u] && dfs(u)) ans++;
+            }
         }
         return ans;
     }
-};
 
-
-/////////////////////////////////////////////////////////////////////////////////
-//minimum vertex cover (the complement of maximum independent set)
-struct HopcroftKarp { // one based
-    static const int inf = 1e9;
-    int n , m;
-    vector<int> l, r, d;
-    vector<vector<int>> g;
-    HopcroftKarp(int _n, int _m) {
-        n = _n;
-        m = _m;
-        int p = _n + _m + 1;
-        g.resize(p);
-        l.resize(p, 0);
-        r.resize(p, 0);
-        d.resize(p, 0);
-    }
-    void add_edge(int u, int v) {
-        g[u].push_back(v + n); //right id is increased by n, so is l[u]
-    }
-    bool bfs() {
-        queue<int> q;
-        for (int u = 1; u <= n; u++) {
-            if (!l[u]) d[u] = 0, q.push(u);
-            else d[u] = inf;
-        }
-        d[0] = inf;
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            for (auto v : g[u]) {
-                if (d[r[v]] == inf) {
-                    d[r[v]] = d[u] + 1;
-                    q.push(r[v]);
-                }
+    vector<pair<int, int>> build_matching() {
+        vector<pair<int, int>> res;
+        for (int u = 1; u <= n; ++u) {
+            if (l[u]) {
+                res.emplace_back(u, l[u] - n); // map back right node ID
             }
         }
-        return d[0] != inf;
+        return res;
     }
-    bool dfs(int u) {
-        if (!u) return true;
-        for (auto v : g[u]) {
-            if(d[r[v]] == d[u] + 1 && dfs(r[v])) {
-                l[u] = v;
-                r[v] = u;
-                return true;
-            }
-        }
-        d[u] = inf;
-        return false;
-    }
-    int maximum_matching() {
-        int ans = 0;
-        while (bfs()) {
-            for(int u = 1; u <= n; u++) if (!l[u] && dfs(u)) ans++;
-        }
-        return ans;
-    }
-    pair<vector<int>, vector<int>> get_min_vertex_cover() {
+
+        pair<vector<int>, vector<int>> get_min_vertex_cover() {
         maximum_matching();
         vector<bool> visL(n + 1, false), visR(m + 1, false);
 
