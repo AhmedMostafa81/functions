@@ -42,7 +42,7 @@ void init(){
 
 
 
-// Bi connected 
+// Bi connected == block cut tree
 
 const int N = ;
 int dfn[N], lowlink[N], tim = 0;
