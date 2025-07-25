@@ -221,6 +221,35 @@ struct Dinic {
         return result;
     }
 
+    vector<pair<int, int>> min_cut() {
+        // Step 1: Find reachable nodes from s in residual graph
+        vector<bool> vis(n, false);
+        queue<int> q;
+        q.push(s);
+        vis[s] = true;
+        while (!q.empty()) {
+            int v = q.front(); q.pop();
+            for (int id : adj[v]) {
+                int u = edges[id].u;
+                if (!vis[u] && edges[id].flow < edges[id].cap) {
+                    vis[u] = true;
+                    q.push(u);
+                }
+            }
+        }
+
+        // Step 2: Find saturated forward edges from reachable to unreachable
+        vector<pair<int, int>> cut_edges;
+        for (int i = 0; i < (int)edges.size(); i += 2) {
+            const FlowEdge& e = edges[i];
+            if (e.cap == e.flow && e.cap > 0 && vis[e.v] && !vis[e.u]) {
+                cut_edges.emplace_back(e.v, e.u);
+            }
+        }
+
+        return cut_edges;
+    }
+
 };
 
 
