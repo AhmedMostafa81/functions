@@ -165,6 +165,52 @@ struct Dinic {
         }
         return f;
     }
+
+    vector<vector<int>> extract_flow_paths(long long flow_limit = -1) {
+    vector<vector<int>> paths;
+
+    while (true) {
+        vector<int> path = {s};
+        vector<bool> visited(n, false);
+        long long pushed = flow_inf;
+
+        bool found = false;
+        function<bool(int)> dfs = [&](int v) -> bool {
+            if (v == t) return true;
+            visited[v] = true;
+            for (int& i = ptr[v]; i < (int)adj[v].size(); ++i) {
+                int id = adj[v][i];
+                FlowEdge& e = edges[id];
+                if (e.flow > 0 && !visited[e.u]) {
+                    path.push_back(e.u);
+                    long long minflow = min(pushed, e.flow);
+                    pushed = minflow;
+                    if (dfs(e.u)) {
+                        e.flow -= pushed;
+                        edges[id ^ 1].flow += pushed;
+                        return true;
+                    }
+                    path.pop_back();
+                }
+            }
+            return false;
+        };
+
+        fill(ptr.begin(), ptr.end(), 0);
+        if (!dfs(s)) break;
+
+        if (flow_limit != -1 && pushed > flow_limit) pushed = flow_limit;
+        paths.push_back(path);
+        if (flow_limit != -1) {
+            flow_limit -= pushed;
+            if (flow_limit <= 0) break;
+        }
+    }
+
+    return paths;
+}
+
+
 };
 
 
