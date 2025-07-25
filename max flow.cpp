@@ -208,8 +208,18 @@ struct Dinic {
     }
 
     return paths;
-}
+    }
 
+
+    vector<tuple<int, int, long long>> get_used_edges() {
+        vector<tuple<int, int, long long>> result;
+        for (const auto& e : edges) {
+            if (e.cap > 0 && e.flow > 0) {
+                result.emplace_back(e.v, e.u, e.flow);
+            }
+        }
+        return result;
+    }
 
 };
 
