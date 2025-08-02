@@ -1047,3 +1047,614 @@ void ReadIntLine(vector<int>& numbers)
     numbers = vector<int>(istream_iterator<int>(is), istream_iterator<int>());
 }
 
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//    fast max flow
+
+struct FlowEdge {
+    int v, u;
+    long long cap, flow = 0;
+    FlowEdge(int v, int u, long long cap) : v(v), u(u), cap(cap) {}
+};
+
+struct Dinic {
+    const long long flow_inf = 1e18;
+    vector<FlowEdge> edges;
+    vector<vector<int>> adj;
+    int n, m = 0;
+    int s, t;
+    vector<int> level, ptr;
+    queue<int> q;
+
+    Dinic(int n, int s, int t) : n(n), s(s), t(t) {
+        adj.resize(n);
+        level.resize(n);
+        ptr.resize(n);
+    }
+
+    void add_edge(int v, int u, long long cap) {
+        edges.emplace_back(v, u, cap);
+        edges.emplace_back(u, v, 0);
+        adj[v].push_back(m);
+        adj[u].push_back(m + 1);
+        m += 2;
+    }
+
+    bool bfs() {
+        while (!q.empty()) {
+            int v = q.front();
+            q.pop();
+            for (int id : adj[v]) {
+                if (edges[id].cap == edges[id].flow)
+                    continue;
+                if (level[edges[id].u] != -1)
+                    continue;
+                level[edges[id].u] = level[v] + 1;
+                q.push(edges[id].u);
+            }
+        }
+        return level[t] != -1;
+    }
+
+    long long dfs(int v, long long pushed) {
+        if (pushed == 0)
+            return 0;
+        if (v == t)
+            return pushed;
+        for (int& cid = ptr[v]; cid < (int)adj[v].size(); cid++) {
+            int id = adj[v][cid];
+            int u = edges[id].u;
+            if (level[v] + 1 != level[u])
+                continue;
+            long long tr = dfs(u, min(pushed, edges[id].cap - edges[id].flow));
+            if (tr == 0)
+                continue;
+            edges[id].flow += tr;
+            edges[id ^ 1].flow -= tr;
+            return tr;
+        }
+        return 0;
+    }
+
+    long long flow() {
+        long long f = 0;
+        while (true) {
+            fill(level.begin(), level.end(), -1);
+            level[s] = 0;
+            q.push(s);
+            if (!bfs())
+                break;
+            fill(ptr.begin(), ptr.end(), 0);
+            while (long long pushed = dfs(s, flow_inf)) {
+                f += pushed;
+            }
+        }
+        return f;
+    }
+
+    vector<vector<int>> extract_flow_paths(long long flow_limit = -1) {
+    vector<vector<int>> paths;
+
+    while (true) {
+        vector<int> path = {s};
+        vector<bool> visited(n, false);
+        long long pushed = flow_inf;
+
+        bool found = false;
+        function<bool(int)> dfs = [&](int v) -> bool {
+            if (v == t) return true;
+            visited[v] = true;
+            for (int& i = ptr[v]; i < (int)adj[v].size(); ++i) {
+                int id = adj[v][i];
+                FlowEdge& e = edges[id];
+                if (e.flow > 0 && !visited[e.u]) {
+                    path.push_back(e.u);
+                    long long minflow = min(pushed, e.flow);
+                    pushed = minflow;
+                    if (dfs(e.u)) {
+                        e.flow -= pushed;
+                        edges[id ^ 1].flow += pushed;
+                        return true;
+                    }
+                    path.pop_back();
+                }
+            }
+            return false;
+        };
+
+        fill(ptr.begin(), ptr.end(), 0);
+        if (!dfs(s)) break;
+
+        if (flow_limit != -1 && pushed > flow_limit) pushed = flow_limit;
+        paths.push_back(path);
+        if (flow_limit != -1) {
+            flow_limit -= pushed;
+            if (flow_limit <= 0) break;
+        }
+    }
+
+    return paths;
+    }
+
+
+    vector<tuple<int, int, long long>> get_used_edges() {
+        vector<tuple<int, int, long long>> result;
+        for (const auto& e : edges) {
+            if (e.cap > 0 && e.flow > 0) {
+                result.emplace_back(e.v, e.u, e.flow);
+            }
+        }
+        return result;
+    }
+
+    vector<pair<int, int>> min_cut() {
+        // Step 1: Find reachable nodes from s in residual graph
+        vector<bool> vis(n, false);
+        queue<int> q;
+        q.push(s);
+        vis[s] = true;
+        while (!q.empty()) {
+            int v = q.front(); q.pop();
+            for (int id : adj[v]) {
+                int u = edges[id].u;
+                if (!vis[u] && edges[id].flow < edges[id].cap) {
+                    vis[u] = true;
+                    q.push(u);
+                }
+            }
+        }
+
+        // Step 2: Find saturated forward edges from reachable to unreachable
+        vector<pair<int, int>> cut_edges;
+        for (int i = 0; i < (int)edges.size(); i += 2) {
+            const FlowEdge& e = edges[i];
+            if (e.cap == e.flow && e.cap > 0 && vis[e.v] && !vis[e.u]) {
+                cut_edges.emplace_back(e.v, e.u);
+            }
+        }
+
+        return cut_edges;
+    }
+
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//    minimum cost max flow
+
+
+
+struct FlowEdge {
+    int v, u;
+    long long cap, flow = 0, cost;
+    FlowEdge(int v, int u, long long cap, long long cost) : v(v), u(u), cap(cap), cost(cost) {}
+};
+
+struct FlowNetwork {
+    const long long INF = 1e18;
+    int n, m = 0, s, t;
+    vector<FlowEdge> edges;
+    vector<vector<int>> adj;
+    vector<int> level, ptr;
+    queue<int> q;
+
+    FlowNetwork(int n, int s, int t) : n(n), s(s), t(t) {
+        adj.resize(n);
+        level.resize(n);
+        ptr.resize(n);
+    }
+
+    void add_edge(int v, int u, long long cap, long long cost = 0) {
+        edges.emplace_back(v, u, cap, cost);
+        edges.emplace_back(u, v, 0, -cost);
+        adj[v].push_back(m);
+        adj[u].push_back(m + 1);
+        m += 2;
+    }
+
+    // Dinic's Max Flow
+    bool bfs() {
+        fill(level.begin(), level.end(), -1);
+        level[s] = 0;
+        q = queue<int>();
+        q.push(s);
+        while (!q.empty()) {
+            int v = q.front(); q.pop();
+            for (int id : adj[v]) {
+                if (edges[id].cap - edges[id].flow < 1) continue;
+                if (level[edges[id].u] != -1) continue;
+                level[edges[id].u] = level[v] + 1;
+                q.push(edges[id].u);
+            }
+        }
+        return level[t] != -1;
+    }
+
+    long long dfs(int v, long long pushed) {
+        if (pushed == 0) return 0;
+        if (v == t) return pushed;
+        for (int &cid = ptr[v]; cid < (int)adj[v].size(); cid++) {
+            int id = adj[v][cid];
+            int u = edges[id].u;
+            if (level[v] + 1 != level[u] || edges[id].cap - edges[id].flow < 1)
+                continue;
+            long long tr = dfs(u, min(pushed, edges[id].cap - edges[id].flow));
+            if (tr == 0) continue;
+            edges[id].flow += tr;
+            edges[id ^ 1].flow -= tr;
+            return tr;
+        }
+        return 0;
+    }
+
+    long long max_flow() {
+        long long f = 0;
+        while (true) {
+            if (!bfs()) break;
+            fill(ptr.begin(), ptr.end(), 0);
+            while (long long pushed = dfs(s, INF)) {
+                f += pushed;
+            }
+        }
+        return f;
+    }
+
+    // Min Cost Flow of K units using SPFA
+    long long min_cost_flow(long long K) {
+        long long flow = 0, cost = 0;
+        vector<long long> dist(n);
+        vector<int> in_queue(n), parent(n), parent_edge(n);
+
+        while (flow < K) {
+            fill(dist.begin(), dist.end(), INF);
+            dist[s] = 0;
+            queue<int> q;
+            q.push(s);
+            in_queue[s] = 1;
+            parent[s] = -1;
+
+            while (!q.empty()) {
+                int v = q.front(); q.pop();
+                in_queue[v] = 0;
+                for (int i = 0; i < (int)adj[v].size(); i++) {
+                    int id = adj[v][i];
+                    int u = edges[id].u;
+                    if (edges[id].cap - edges[id].flow < 1) continue;
+                    if (dist[u] > dist[v] + edges[id].cost) {
+                        dist[u] = dist[v] + edges[id].cost;
+                        parent[u] = v;
+                        parent_edge[u] = id;
+                        if (!in_queue[u]) {
+                            in_queue[u] = 1;
+                            q.push(u);
+                        }
+                    }
+                }
+            }
+
+            if (dist[t] == INF) break;
+
+            long long push = K - flow;
+            int v = t;
+            while (v != s) {
+                int id = parent_edge[v];
+                push = min(push, edges[id].cap - edges[id].flow);
+                v = parent[v];
+            }
+
+            flow += push;
+            cost += push * dist[t];
+            v = t;
+            while (v != s) {
+                int id = parent_edge[v];
+                edges[id].flow += push;
+                edges[id ^ 1].flow -= push;
+                v = parent[v];
+            }
+        }
+
+        return (flow < K ? -1 : cost);
+    }
+};
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//sqrt
+void build(int blk){
+    for (int i =0;i<26;i++)
+        fr[blk][i].clear();
+    for (int i = blk*sq ; i < min(n,(blk+1)*sq);i++) {
+        if (lazy[blk] != '*')
+            s[i] = lazy[blk];
+        fr[blk][s[i]-'a'].push_back(i);
+    }
+    lazy[blk] = '*';
+}
+
+void update(int l,int r,char c){
+    build(l/sq);
+    build(r/sq);
+    for (int i = l ; i <= r;){
+        if (i %sq == 0 && i + sq - 1 <= r){
+            lazy[i/sq] = c;
+            i+=sq;
+        }
+        else {
+            s[i] = c;
+            i++;
+        }
+    }
+    build(l/sq);
+    build(r/sq);
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//matrix exponentiation
+matrix mul(matrix &a , matrix &b)
+{
+    int n = a.size() , m = b[0].size();
+    matrix res = zero(n , m);
+
+    for(int i=0; i<n; i++)
+    {
+        for(int j=0; j<m; j++)
+        {
+            for(int k=0; k<n; k++)
+            {
+                res[i][j] += a[i][k]*b[k][j];
+                res[i][j] %= mod;
+            }
+        }
+    }
+    return res;
+}
+
+matrix matrix_fp(matrix &a , ll p)
+{
+    if (p==1)
+        return a;
+
+    matrix res = matrix_fp(a , p/2);
+    res = mul(res , res);
+    if (p%2) res = mul(res , a);
+
+    return res;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// string
+
+void Z(){
+    int l = 0 , r = 0;
+    for (int i =1;i<n;i++){
+        if(i < r)
+            z[i] = min(r-i,z[i-l]);
+        while(i + z[i] < n && s[i+z[i]] == s[z[i]])
+            z[i]++;
+        if (i + z[i] > r)
+            l = i , r = i + z[i] ;
+    }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void KMP(){
+    for (int i = 1; i < n ; i++){
+        int j = pi[i-1];
+        while(j > 0 && s[i] != s[j])
+            j = pi[j-1];
+        if (s[i] == s[j])
+            j++;
+        pi[i] = j;
+    }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+deque<int> manacher_odd(string &s){
+    s = "@" + s + "!";
+    int n = s.size();
+    deque<int>pal(n);
+    int l = 0 , r = 1;
+    for (int i = 1 ; i < n ; i++ ){
+        pal[i] = min(r-i , pal[l + (r - i)]);
+        while(s[i - pal[i]] == s[i+pal[i]])
+            pal[i]++;
+        if (i + pal[i] > r)
+            l = i - pal[i] , r = i + pal[i];
+    }
+    pal.pop_front();
+    pal.pop_back();
+    return pal;
+}
+
+deque<int> manacher_even_odd(string &s){
+    string t;
+    for(auto c:s)
+        t += '#' , t+=c;
+    t += '#';
+    return manacher_odd(t);
+}
+
+signed main() {
+/* ^^^ */    AhmedPlusPlus    /* ^^^ */
+
+//    ->> practice makes perfect
+
+    string s;cin>>s;
+    deque<int>pal = manacher_even_odd(s);
+    int mx = -1 , tar = -1;
+    bool odd;
+    for (int i = 1; i < pal.size() -1 ; i++){
+        int nw = pal[i] - 1;
+        if (nw > mx)
+            mx = nw , tar = (i-1) / 2 , odd = i & 1;
+    }
+    string ans;
+    for (int i = tar - mx/2 + (!odd) ; i <= tar + mx / 2 ; i++)
+        ans += s[i];
+    cout << ans << '\n';
+
+}
+///////////////////////////////////////////////////////////////////////////////////////
+Tricks
+
+// Number of distinct substrings in a string
+/*
+To count distinct substrings of a string s, append characters one by one and track new substrings.
+When adding a character c to s, form t = s + c, then reverse t to turn suffixes into prefixes.
+Compute the Z-function of reversed t to find the longest prefix that repeats elsewhere (z_max).
+The number of new substrings ending in c is length(t) - z_max.
+Summing this over all characters gives total distinct substrings.
+The total time complexity is O(n²) for a string of length n.
+*/
+/////////////////////////////////////////////////////////////////////////////////////
+// freq of each one
+/*
+    string s;cin>>s;
+    string t ;
+    vector<int>fr(n+1) , ans(n+5);
+    for(int i = n-1; i >= 0 ; --i){
+        t = s[i] + t;
+        vector<int>z = Z(t);
+        z[0] = n - i;
+        vector<int>tmp(n+2);
+        for (auto j:z)tmp[0]++ , tmp[j+1]--;
+        for (int j = 1 ; j <= n ;++j)
+            tmp[j] += tmp[j-1] , fr[tmp[j]]++;
+    }
+    int prv = 0;
+    for (int i = n  ; i >= 1 ; --i)
+        fr[i] -= prv , prv += fr[i];
+*/
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  suffix array
+// very important note : if you want to concatenate two strings use this s = s1 + "*" + s2; 
+// not "#" or "$"
+
+
+//   n * log^2
+
+vector<int>suffix_array(string &tmp){
+    string s = tmp + "$";
+    int n = s.size();
+    vector<int>p(n) , c(n); // order , class
+    {
+        // k = 0
+        vector<pair<int, int>> a(n);
+        for (int i = 0; i < n; i++)a[i] = {s[i], i};
+        sort(a.begin(), a.end());
+        for (int i = 0; i < n; i++)p[i] = a[i].second;
+        c[p[0]] = 0;
+        for (int i = 1; i < n; i++) {
+            if (a[i].first == a[i - 1].first)
+                c[p[i]] = c[p[i - 1]];
+            else
+                c[p[i]] = c[p[i - 1]] + 1;
+        }
+    }
+
+    int k = 0;
+    while((1 << k) < n){
+        // k -> k + 1
+        vector<pair<pair<int,int>,int>>a(n);
+        for(int i =0;i<n;i++)
+            a[i] = {{c[i], c[(i + (1 << k)) % n]} , i};
+        sort(a.begin(), a.end());
+        for (int i = 0; i < n; i++)p[i] = a[i].second;
+        c[p[0]] = 0;
+        for (int i = 1; i < n; i++) {
+            if (a[i].first == a[i - 1].first)
+                c[p[i]] = c[p[i - 1]];
+            else
+                c[p[i]] = c[p[i - 1]] + 1;
+        }
+        k++;
+    }
+    return p;
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+//   fast suffix array
+//   n * log
+
+void count_sort(vector<int>&p , vector<int>&c){
+    int n = p.size();
+    vector<int>cnt(n);
+    for (auto &x : c)
+        cnt[x]++;
+    vector<int>p_new(n);
+    vector<int>pos(n);
+    pos[0] = 0;
+    for (int i =1;i<n;i++)
+        pos[i] = pos[i-1] + cnt[i-1];
+    for (auto &x:p){
+        int i = c[x];
+        p_new[pos[i]] = x;
+        pos[i]++;
+    }
+    p = p_new;
+}
+
+vector<int>suffix_array(string &tmp){
+    string s = tmp + "$";
+    int n = s.size();
+    vector<int>p(n) , c(n); // order , class
+    {
+        // k = 0
+        vector<pair<int, int>> a(n);
+        for (int i = 0; i < n; i++)a[i] = {s[i], i};
+        sort(a.begin(), a.end());
+        for (int i = 0; i < n; i++)p[i] = a[i].second;
+        c[p[0]] = 0;
+        for (int i = 1; i < n; i++) {
+            if (a[i].first == a[i - 1].first)
+                c[p[i]] = c[p[i - 1]];
+            else
+                c[p[i]] = c[p[i - 1]] + 1;
+        }
+    }
+
+    int k = 0;
+    while((1 << k) < n){
+        // k -> k + 1
+        for (int i = 0; i < n ;i++)
+            p[i] = (p[i] - (1 << k) + n) % n;
+        count_sort(p,c);
+        vector<int> c_new(n);
+        c_new[p[0]] = 0;
+        for(int i =1;i<n;i++){
+            pair<int,int>prv = {c[p[i-1]],c[(p[i-1]+(1<<k)) % n]};
+            pair<int,int>now = {c[p[i]],c[(p[i]+(1<<k)) % n]};
+            if (now == prv)
+                c_new[p[i]] = c_new[p[i-1]];
+            else
+                c_new[p[i]] = c_new[p[i-1]] + 1;
+        }
+        c = c_new;
+        k++;
+    }
+    return p;
+}
+
+// to build LCP (longest common prefix)
+
+    lcp = vector<int>(n);
+    k = 0;
+    for (int i = 0 ; i < n -1 ; i++){
+        int pi = c[i];
+        int j = p[pi-1];
+        // lcp[i] = lcp(s[i..] , s[j..])
+        while(s[i+k] == s[j+k])k++;
+        lcp[pi] = k;
+        k = max(0ll , k-1);
+    }
+
+
+
+
+
+
+
