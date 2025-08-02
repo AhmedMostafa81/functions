@@ -1,5 +1,6 @@
 #include<bits/stdc++.h>
 ios::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+// ############################ GRAPH #################################        
 ///////////////////////////////////////////////////////////////////////
 
 // LCA
@@ -205,6 +206,688 @@ Node solve(int x,int y){
     rt.MN = min({L.MN , R.MN , L.suf_mn + a[lca] + R.suf_mn});
     return rt;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+bellman for min path
+
+    int n,m;cin>>n>>m;
+    vector<tuple<int,int,int>>gr;
+    vector<int>dis(n+1,inf);
+    loop(i,m){
+        int x,y,c;cin>>x>>y>>c;
+        gr.pb({x,y,c});
+        dis[y]=min(dis[y],c);
+    }
+    bool INF=0;
+    for(int i =0 ;i<n;i++){
+        for (int j=0;j<m;j++){
+            auto[x,y,c]=gr[j];
+            if (dis[x]+c < dis[y]){
+                dis[y]=dis[x]+c;
+                if (n==i+1)INF=1;
+            }
+        }
+    }
+
+normal bellman
+
+    int n,m;cin>>n>>m;
+    vector<int>dis(n+1,inf);
+    vector<tuple<int,int,int>>edges;
+    loop(i,m){
+        int x,y,c;cin>>x>>y>>c;
+        edges.pb({x,y,c});
+        dis[y]=min(dis[y],c);
+    }
+    bool pos=0;
+    loop(i,n){
+        loop(j,m){
+            auto[x,y,c]=edges[j];
+            if (dis[y] > dis[x]+c){
+                dis[y]=dis[x]+c;
+                if (i==n-1)
+                    pos=1;
+            }
+        }
+    }
+    if (pos)cout<<"possible\n";
+    else cout <<"not possible\n";
+
+
+        //                          floyd
+        for (int a=1;a<=n;a++)
+            for(int b=1;b<=n;b++)
+                    dis[a][b]=min(dis[a][k]+dis[k][b],dis[a][b]);
+/////////////////////////////////////////////////////////
+        for (int i = 'a'; i <= 'z'; i++) {
+            for (int a = 'a'; a <= 'z'; a++) {
+                for (int b = 'a'; b <= 'z'; b++) {
+                    if (cost[a][b] > cost[a][i] + cost[i][b] && cost[a][i]!=inf && cost[i][b]!=inf)
+                    cost[a][b] =cost[a][i] + cost[i][b];
+                }
+            }
+        }
+///////////////////////
+tarjan
+
+const int N=1e5+5;
+vector<int>gr[N];
+vector<int>new_gr[N];
+vector<int>lowlink,dfn,col,dis,vis;
+vector<pair<int,int>>br;
+int df,cl;
+stack<int>st;
+ 
+void tar(int node,int par){
+    lowlink[node] = dfn[node] =df++;
+    st.push(node);
+    for (auto ch:gr[node]){
+        if (ch==par)continue;
+        if (!dfn[ch]){
+            tar(ch,node);
+            if (lowlink[ch] > lowlink[node])
+                br.push_back({ch,node});
+            lowlink[node] = min(lowlink[node],lowlink[ch]);
+        }
+        else if (!col[ch]){
+            lowlink[node] = min(lowlink[node],dfn[ch]);
+        }
+    }
+    if (lowlink[node] == dfn[node]){
+        int x=-1;
+        while(x!=node){
+            x=st.top();
+            st.pop();
+            col[x]=cl;
+        }
+        cl++;
+    }
+}
+
+    df=cl=1;
+    br.clear();
+    cin>>n>>m;
+    for (int i =1;i<=n;i++)gr[i].clear();
+    for (int i =1;i<=n;i++)new_gr[i].clear();
+    for (int i=0;i<m;i++){
+        int x,y;cin>>x>>y;
+        gr[x].push_back(y);
+        gr[y].push_back(x);
+    }
+    lowlink.assign(n+1,0);
+    dfn.assign(n+1,0);
+    col.assign(n+1,0);
+    tar(1,-1);
+    int fin=0;
+    for (int i =0;i<br.size();i++){
+        auto [x,y] = br[i];
+        if (col[x]!=col[y])fin++;
+        new_gr[col[x]].push_back(col[y]);
+        new_gr[col[y]].push_back(col[x]);
+    }
+
+
+
+// articulation point
+
+int n; // number of nodes
+vector<vector<int>> adj; // adjacency list of graph
+
+vector<bool> visited;
+vector<int> tin, low;
+int timer;
+
+void dfs(int v, int p = -1) {
+    visited[v] = true;
+    tin[v] = low[v] = timer++;
+    int children=0;
+    for (int to : adj[v]) {
+        if (to == p) continue;
+        if (visited[to]) {
+            low[v] = min(low[v], tin[to]);
+        } else {
+            dfs(to, v);
+            low[v] = min(low[v], low[to]);
+            if (low[to] >= tin[v] && p!=-1)
+                IS_CUTPOINT(v);
+            ++children;
+        }
+    }
+    if(p == -1 && children > 1)
+        IS_CUTPOINT(v);
+}
+
+void find_cutpoints() {
+    timer = 0;
+    visited.assign(n, false);
+    tin.assign(n, -1);
+    low.assign(n, -1);
+    for (int i = 0; i < n; ++i) {
+        if (!visited[i])
+            dfs (i);
+    }
+}
+
+// Bi connected == block cut tree
+
+const int N = ;
+int dfn[N], lowlink[N], tim = 0;
+stack<int> st;
+bool inS[N], art[N];
+vector<vector<int>> comp;   
+vector<int> gr[N];
+
+void tarjan(int node, int par) {               
+    dfn[node] = lowlink[node] = ++tim;
+    st.push(node);
+    inS[node] = true;
+    int cnt = 0;
+
+    for (const int& ch : gr[node]) {          
+        if (ch == par) continue;
+
+        if (!dfn[ch]) {
+            tarjan(ch, node);
+            lowlink[node] = min(lowlink[node], lowlink[ch]);
+
+            if (lowlink[ch] >= dfn[node]) {
+                if (node != par) art[node] = true;
+                comp.push_back({node});
+                while (comp.back().back() != ch)
+                    comp.back().push_back(st.top()), st.pop();
+            }
+            ++cnt;
+        }
+        else if (inS[ch])
+            lowlink[node] = min(lowlink[node], dfn[ch]);
+    }
+    if (cnt > 1 && node == par)
+        art[node] = true;
+
+}
+
+vector<vector<int>> new_gr(2 * N);
+int ID[N];
+
+signed main() {
+
+    // input
+    
+    
+    
+    for (int node = 1; node <= n; ++node)
+        if (!dfn[node])
+            tarjan(node, node);
+
+    int cur = 1;
+    // articulation points
+    for (int node = 1; node <= n; ++node)
+        if (art[node])
+            ID[node] = cur++;
+    // components
+    for (const vector<int>& v : comp) {
+        for (const int& node : v) {
+            if (art[node]) {
+                new_gr[cur].push_back(ID[node]);
+                new_gr[ID[node]].push_back(cur);
+            }
+            else ID[node] = cur;
+        }
+        ++cur;
+    }
+   
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+int n, k;
+vector<vector<int>> g;
+vector<int> mt;
+vector<bool> used;
+
+bool try_kuhn(int v) {
+    if (used[v])
+        return false;
+    used[v] = true;
+    for (int to : g[v]) {
+        if (mt[to] == -1 || try_kuhn(mt[to])) {
+            mt[to] = v;
+            return true;
+        }
+    }
+    return false;
+}
+
+int main() {
+    //... reading the graph ...
+
+    mt.assign(k, -1);
+    for (int v = 0; v < n; ++v) {
+        used.assign(n, false);
+        try_kuhn(v);
+    }
+
+    for (int i = 0; i < k; ++i)
+        if (mt[i] != -1)
+            printf("%d %d\n", mt[i] + 1, i + 1);
+}
+
+
+// fast matching
+
+struct HopcroftKarp { // one based
+    static const int inf = 1e16;
+    int n , m;
+    vector<int> l, r, d;
+    vector<vector<int>> g;
+
+    HopcroftKarp(int _n, int _m) {
+        n = _n;
+        m = _m;
+        int p = _n + _m + 1;
+        g.resize(p);
+        l.resize(p, 0);
+        r.resize(p, 0);
+        d.resize(p, 0);
+    }
+
+    void add_edge(int u, int v) {
+        g[u].push_back(v + n); // right id is increased by n
+    }
+
+    bool bfs() {
+        queue<int> q;
+        for (int u = 1; u <= n; u++) {
+            if (!l[u]) d[u] = 0, q.push(u);
+            else d[u] = inf;
+        }
+        d[0] = inf;
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+            for (auto v : g[u]) {
+                if (d[r[v]] == inf) {
+                    d[r[v]] = d[u] + 1;
+                    q.push(r[v]);
+                }
+            }
+        }
+        return d[0] != inf;
+    }
+
+    bool dfs(int u) {
+        if (!u) return true;
+        for (auto v : g[u]) {
+            if (d[r[v]] == d[u] + 1 && dfs(r[v])) {
+                l[u] = v;
+                r[v] = u;
+                return true;
+            }
+        }
+        d[u] = inf;
+        return false;
+    }
+
+    int maximum_matching() {
+        int ans = 0;
+        while (bfs()) {
+            for (int u = 1; u <= n; u++) {
+                if (!l[u] && dfs(u)) ans++;
+            }
+        }
+        return ans;
+    }
+
+    vector<pair<int, int>> build_matching() {
+        vector<pair<int, int>> res;
+        for (int u = 1; u <= n; ++u) {
+            if (l[u]) {
+                res.emplace_back(u, l[u] - n); // map back right node ID
+            }
+        }
+        return res;
+    }
+
+    pair<vector<int>, vector<int>> get_min_vertex_cover() {
+        maximum_matching();
+        vector<bool> visL(n + 1, false), visR(m + 1, false);
+
+        function<void(int)> dfs_cover = [&](int u) {
+            visL[u] = true;
+            for (int v : g[u]) {
+                int vr = v - n; // Convert back to original column index
+                if (!visR[vr] && l[u] != v) { // non-matching edge
+                    visR[vr] = true;
+                    if (r[v]) dfs_cover(r[v]);
+                }
+            }
+        };
+
+        for (int u = 1; u <= n; u++) {
+            if (l[u] == 0) dfs_cover(u);
+        }
+
+        vector<int> rows, cols;
+        for (int u = 1; u <= n; u++) {
+            if (!visL[u]) rows.push_back(u);
+        }
+        for (int v = 1; v <= m; v++) {
+            if (visR[v]) cols.push_back(v);
+        }
+
+        return {rows, cols};
+    }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//    fast max flow
+
+struct FlowEdge {
+    int v, u;
+    long long cap, flow = 0;
+    FlowEdge(int v, int u, long long cap) : v(v), u(u), cap(cap) {}
+};
+
+struct Dinic {
+    const long long flow_inf = 1e18;
+    vector<FlowEdge> edges;
+    vector<vector<int>> adj;
+    int n, m = 0;
+    int s, t;
+    vector<int> level, ptr;
+    queue<int> q;
+
+    Dinic(int n, int s, int t) : n(n), s(s), t(t) {
+        adj.resize(n);
+        level.resize(n);
+        ptr.resize(n);
+    }
+
+    void add_edge(int v, int u, long long cap) {
+        edges.emplace_back(v, u, cap);
+        edges.emplace_back(u, v, 0);
+        adj[v].push_back(m);
+        adj[u].push_back(m + 1);
+        m += 2;
+    }
+
+    bool bfs() {
+        while (!q.empty()) {
+            int v = q.front();
+            q.pop();
+            for (int id : adj[v]) {
+                if (edges[id].cap == edges[id].flow)
+                    continue;
+                if (level[edges[id].u] != -1)
+                    continue;
+                level[edges[id].u] = level[v] + 1;
+                q.push(edges[id].u);
+            }
+        }
+        return level[t] != -1;
+    }
+
+    long long dfs(int v, long long pushed) {
+        if (pushed == 0)
+            return 0;
+        if (v == t)
+            return pushed;
+        for (int& cid = ptr[v]; cid < (int)adj[v].size(); cid++) {
+            int id = adj[v][cid];
+            int u = edges[id].u;
+            if (level[v] + 1 != level[u])
+                continue;
+            long long tr = dfs(u, min(pushed, edges[id].cap - edges[id].flow));
+            if (tr == 0)
+                continue;
+            edges[id].flow += tr;
+            edges[id ^ 1].flow -= tr;
+            return tr;
+        }
+        return 0;
+    }
+
+    long long flow() {
+        long long f = 0;
+        while (true) {
+            fill(level.begin(), level.end(), -1);
+            level[s] = 0;
+            q.push(s);
+            if (!bfs())
+                break;
+            fill(ptr.begin(), ptr.end(), 0);
+            while (long long pushed = dfs(s, flow_inf)) {
+                f += pushed;
+            }
+        }
+        return f;
+    }
+
+    vector<vector<int>> extract_flow_paths(long long flow_limit = -1) {
+    vector<vector<int>> paths;
+
+    while (true) {
+        vector<int> path = {s};
+        vector<bool> visited(n, false);
+        long long pushed = flow_inf;
+
+        bool found = false;
+        function<bool(int)> dfs = [&](int v) -> bool {
+            if (v == t) return true;
+            visited[v] = true;
+            for (int& i = ptr[v]; i < (int)adj[v].size(); ++i) {
+                int id = adj[v][i];
+                FlowEdge& e = edges[id];
+                if (e.flow > 0 && !visited[e.u]) {
+                    path.push_back(e.u);
+                    long long minflow = min(pushed, e.flow);
+                    pushed = minflow;
+                    if (dfs(e.u)) {
+                        e.flow -= pushed;
+                        edges[id ^ 1].flow += pushed;
+                        return true;
+                    }
+                    path.pop_back();
+                }
+            }
+            return false;
+        };
+
+        fill(ptr.begin(), ptr.end(), 0);
+        if (!dfs(s)) break;
+
+        if (flow_limit != -1 && pushed > flow_limit) pushed = flow_limit;
+        paths.push_back(path);
+        if (flow_limit != -1) {
+            flow_limit -= pushed;
+            if (flow_limit <= 0) break;
+        }
+    }
+
+    return paths;
+    }
+
+
+    vector<tuple<int, int, long long>> get_used_edges() {
+        vector<tuple<int, int, long long>> result;
+        for (const auto& e : edges) {
+            if (e.cap > 0 && e.flow > 0) {
+                result.emplace_back(e.v, e.u, e.flow);
+            }
+        }
+        return result;
+    }
+
+    vector<pair<int, int>> min_cut() {
+        // Step 1: Find reachable nodes from s in residual graph
+        vector<bool> vis(n, false);
+        queue<int> q;
+        q.push(s);
+        vis[s] = true;
+        while (!q.empty()) {
+            int v = q.front(); q.pop();
+            for (int id : adj[v]) {
+                int u = edges[id].u;
+                if (!vis[u] && edges[id].flow < edges[id].cap) {
+                    vis[u] = true;
+                    q.push(u);
+                }
+            }
+        }
+
+        // Step 2: Find saturated forward edges from reachable to unreachable
+        vector<pair<int, int>> cut_edges;
+        for (int i = 0; i < (int)edges.size(); i += 2) {
+            const FlowEdge& e = edges[i];
+            if (e.cap == e.flow && e.cap > 0 && vis[e.v] && !vis[e.u]) {
+                cut_edges.emplace_back(e.v, e.u);
+            }
+        }
+
+        return cut_edges;
+    }
+
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//    minimum cost max flow
+
+
+
+struct FlowEdge {
+    int v, u;
+    long long cap, flow = 0, cost;
+    FlowEdge(int v, int u, long long cap, long long cost) : v(v), u(u), cap(cap), cost(cost) {}
+};
+
+struct FlowNetwork {
+    const long long INF = 1e18;
+    int n, m = 0, s, t;
+    vector<FlowEdge> edges;
+    vector<vector<int>> adj;
+    vector<int> level, ptr;
+    queue<int> q;
+
+    FlowNetwork(int n, int s, int t) : n(n), s(s), t(t) {
+        adj.resize(n);
+        level.resize(n);
+        ptr.resize(n);
+    }
+
+    void add_edge(int v, int u, long long cap, long long cost = 0) {
+        edges.emplace_back(v, u, cap, cost);
+        edges.emplace_back(u, v, 0, -cost);
+        adj[v].push_back(m);
+        adj[u].push_back(m + 1);
+        m += 2;
+    }
+
+    // Dinic's Max Flow
+    bool bfs() {
+        fill(level.begin(), level.end(), -1);
+        level[s] = 0;
+        q = queue<int>();
+        q.push(s);
+        while (!q.empty()) {
+            int v = q.front(); q.pop();
+            for (int id : adj[v]) {
+                if (edges[id].cap - edges[id].flow < 1) continue;
+                if (level[edges[id].u] != -1) continue;
+                level[edges[id].u] = level[v] + 1;
+                q.push(edges[id].u);
+            }
+        }
+        return level[t] != -1;
+    }
+
+    long long dfs(int v, long long pushed) {
+        if (pushed == 0) return 0;
+        if (v == t) return pushed;
+        for (int &cid = ptr[v]; cid < (int)adj[v].size(); cid++) {
+            int id = adj[v][cid];
+            int u = edges[id].u;
+            if (level[v] + 1 != level[u] || edges[id].cap - edges[id].flow < 1)
+                continue;
+            long long tr = dfs(u, min(pushed, edges[id].cap - edges[id].flow));
+            if (tr == 0) continue;
+            edges[id].flow += tr;
+            edges[id ^ 1].flow -= tr;
+            return tr;
+        }
+        return 0;
+    }
+
+    long long max_flow() {
+        long long f = 0;
+        while (true) {
+            if (!bfs()) break;
+            fill(ptr.begin(), ptr.end(), 0);
+            while (long long pushed = dfs(s, INF)) {
+                f += pushed;
+            }
+        }
+        return f;
+    }
+
+    // Min Cost Flow of K units using SPFA
+    long long min_cost_flow(long long K) {
+        long long flow = 0, cost = 0;
+        vector<long long> dist(n);
+        vector<int> in_queue(n), parent(n), parent_edge(n);
+
+        while (flow < K) {
+            fill(dist.begin(), dist.end(), INF);
+            dist[s] = 0;
+            queue<int> q;
+            q.push(s);
+            in_queue[s] = 1;
+            parent[s] = -1;
+
+            while (!q.empty()) {
+                int v = q.front(); q.pop();
+                in_queue[v] = 0;
+                for (int i = 0; i < (int)adj[v].size(); i++) {
+                    int id = adj[v][i];
+                    int u = edges[id].u;
+                    if (edges[id].cap - edges[id].flow < 1) continue;
+                    if (dist[u] > dist[v] + edges[id].cost) {
+                        dist[u] = dist[v] + edges[id].cost;
+                        parent[u] = v;
+                        parent_edge[u] = id;
+                        if (!in_queue[u]) {
+                            in_queue[u] = 1;
+                            q.push(u);
+                        }
+                    }
+                }
+            }
+
+            if (dist[t] == INF) break;
+
+            long long push = K - flow;
+            int v = t;
+            while (v != s) {
+                int id = parent_edge[v];
+                push = min(push, edges[id].cap - edges[id].flow);
+                v = parent[v];
+            }
+
+            flow += push;
+            cost += push * dist[t];
+            v = t;
+            while (v != s) {
+                int id = parent_edge[v];
+                edges[id].flow += push;
+                edges[id ^ 1].flow -= push;
+                v = parent[v];
+            }
+        }
+
+        return (flow < K ? -1 : cost);
+    }
+};
 
 //////////////////////////////////////////////////////////////////////////
 struct Trie {
@@ -659,375 +1342,7 @@ void pewpew() {
         cout <<ans[i];
 
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-bellman for min path
 
-    int n,m;cin>>n>>m;
-    vector<tuple<int,int,int>>gr;
-    vector<int>dis(n+1,inf);
-    loop(i,m){
-        int x,y,c;cin>>x>>y>>c;
-        gr.pb({x,y,c});
-        dis[y]=min(dis[y],c);
-    }
-    bool INF=0;
-    for(int i =0 ;i<n;i++){
-        for (int j=0;j<m;j++){
-            auto[x,y,c]=gr[j];
-            if (dis[x]+c < dis[y]){
-                dis[y]=dis[x]+c;
-                if (n==i+1)INF=1;
-            }
-        }
-    }
-
-normal bellman
-
-    int n,m;cin>>n>>m;
-    vector<int>dis(n+1,inf);
-    vector<tuple<int,int,int>>edges;
-    loop(i,m){
-        int x,y,c;cin>>x>>y>>c;
-        edges.pb({x,y,c});
-        dis[y]=min(dis[y],c);
-    }
-    bool pos=0;
-    loop(i,n){
-        loop(j,m){
-            auto[x,y,c]=edges[j];
-            if (dis[y] > dis[x]+c){
-                dis[y]=dis[x]+c;
-                if (i==n-1)
-                    pos=1;
-            }
-        }
-    }
-    if (pos)cout<<"possible\n";
-    else cout <<"not possible\n";
-
-
-        //                          floyd
-        for (int a=1;a<=n;a++)
-            for(int b=1;b<=n;b++)
-                    dis[a][b]=min(dis[a][k]+dis[k][b],dis[a][b]);
-/////////////////////////////////////////////////////////
-        for (int i = 'a'; i <= 'z'; i++) {
-            for (int a = 'a'; a <= 'z'; a++) {
-                for (int b = 'a'; b <= 'z'; b++) {
-                    if (cost[a][b] > cost[a][i] + cost[i][b] && cost[a][i]!=inf && cost[i][b]!=inf)
-                    cost[a][b] =cost[a][i] + cost[i][b];
-                }
-            }
-        }
-///////////////////////
-tarjan
-
-const int N=1e5+5;
-vector<int>gr[N];
-vector<int>new_gr[N];
-vector<int>lowlink,dfn,col,dis,vis;
-vector<pair<int,int>>br;
-int df,cl;
-stack<int>st;
- 
-void tar(int node,int par){
-    lowlink[node] = dfn[node] =df++;
-    st.push(node);
-    for (auto ch:gr[node]){
-        if (ch==par)continue;
-        if (!dfn[ch]){
-            tar(ch,node);
-            if (lowlink[ch] > lowlink[node])
-                br.push_back({ch,node});
-            lowlink[node] = min(lowlink[node],lowlink[ch]);
-        }
-        else if (!col[ch]){
-            lowlink[node] = min(lowlink[node],dfn[ch]);
-        }
-    }
-    if (lowlink[node] == dfn[node]){
-        int x=-1;
-        while(x!=node){
-            x=st.top();
-            st.pop();
-            col[x]=cl;
-        }
-        cl++;
-    }
-}
-
-    df=cl=1;
-    br.clear();
-    cin>>n>>m;
-    for (int i =1;i<=n;i++)gr[i].clear();
-    for (int i =1;i<=n;i++)new_gr[i].clear();
-    for (int i=0;i<m;i++){
-        int x,y;cin>>x>>y;
-        gr[x].push_back(y);
-        gr[y].push_back(x);
-    }
-    lowlink.assign(n+1,0);
-    dfn.assign(n+1,0);
-    col.assign(n+1,0);
-    tar(1,-1);
-    int fin=0;
-    for (int i =0;i<br.size();i++){
-        auto [x,y] = br[i];
-        if (col[x]!=col[y])fin++;
-        new_gr[col[x]].push_back(col[y]);
-        new_gr[col[y]].push_back(col[x]);
-    }
-
-
-
-// articulation point
-
-int n; // number of nodes
-vector<vector<int>> adj; // adjacency list of graph
-
-vector<bool> visited;
-vector<int> tin, low;
-int timer;
-
-void dfs(int v, int p = -1) {
-    visited[v] = true;
-    tin[v] = low[v] = timer++;
-    int children=0;
-    for (int to : adj[v]) {
-        if (to == p) continue;
-        if (visited[to]) {
-            low[v] = min(low[v], tin[to]);
-        } else {
-            dfs(to, v);
-            low[v] = min(low[v], low[to]);
-            if (low[to] >= tin[v] && p!=-1)
-                IS_CUTPOINT(v);
-            ++children;
-        }
-    }
-    if(p == -1 && children > 1)
-        IS_CUTPOINT(v);
-}
-
-void find_cutpoints() {
-    timer = 0;
-    visited.assign(n, false);
-    tin.assign(n, -1);
-    low.assign(n, -1);
-    for (int i = 0; i < n; ++i) {
-        if (!visited[i])
-            dfs (i);
-    }
-}
-
-// Bi connected == block cut tree
-
-const int N = ;
-int dfn[N], lowlink[N], tim = 0;
-stack<int> st;
-bool inS[N], art[N];
-vector<vector<int>> comp;   
-vector<int> gr[N];
-
-void tarjan(int node, int par) {               
-    dfn[node] = lowlink[node] = ++tim;
-    st.push(node);
-    inS[node] = true;
-    int cnt = 0;
-
-    for (const int& ch : gr[node]) {          
-        if (ch == par) continue;
-
-        if (!dfn[ch]) {
-            tarjan(ch, node);
-            lowlink[node] = min(lowlink[node], lowlink[ch]);
-
-            if (lowlink[ch] >= dfn[node]) {
-                if (node != par) art[node] = true;
-                comp.push_back({node});
-                while (comp.back().back() != ch)
-                    comp.back().push_back(st.top()), st.pop();
-            }
-            ++cnt;
-        }
-        else if (inS[ch])
-            lowlink[node] = min(lowlink[node], dfn[ch]);
-    }
-    if (cnt > 1 && node == par)
-        art[node] = true;
-
-}
-
-vector<vector<int>> new_gr(2 * N);
-int ID[N];
-
-signed main() {
-
-    // input
-    
-    
-    
-    for (int node = 1; node <= n; ++node)
-        if (!dfn[node])
-            tarjan(node, node);
-
-    int cur = 1;
-    // articulation points
-    for (int node = 1; node <= n; ++node)
-        if (art[node])
-            ID[node] = cur++;
-    // components
-    for (const vector<int>& v : comp) {
-        for (const int& node : v) {
-            if (art[node]) {
-                new_gr[cur].push_back(ID[node]);
-                new_gr[ID[node]].push_back(cur);
-            }
-            else ID[node] = cur;
-        }
-        ++cur;
-    }
-   
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-int n, k;
-vector<vector<int>> g;
-vector<int> mt;
-vector<bool> used;
-
-bool try_kuhn(int v) {
-    if (used[v])
-        return false;
-    used[v] = true;
-    for (int to : g[v]) {
-        if (mt[to] == -1 || try_kuhn(mt[to])) {
-            mt[to] = v;
-            return true;
-        }
-    }
-    return false;
-}
-
-int main() {
-    //... reading the graph ...
-
-    mt.assign(k, -1);
-    for (int v = 0; v < n; ++v) {
-        used.assign(n, false);
-        try_kuhn(v);
-    }
-
-    for (int i = 0; i < k; ++i)
-        if (mt[i] != -1)
-            printf("%d %d\n", mt[i] + 1, i + 1);
-}
-
-
-// fast matching
-
-struct HopcroftKarp { // one based
-    static const int inf = 1e16;
-    int n , m;
-    vector<int> l, r, d;
-    vector<vector<int>> g;
-
-    HopcroftKarp(int _n, int _m) {
-        n = _n;
-        m = _m;
-        int p = _n + _m + 1;
-        g.resize(p);
-        l.resize(p, 0);
-        r.resize(p, 0);
-        d.resize(p, 0);
-    }
-
-    void add_edge(int u, int v) {
-        g[u].push_back(v + n); // right id is increased by n
-    }
-
-    bool bfs() {
-        queue<int> q;
-        for (int u = 1; u <= n; u++) {
-            if (!l[u]) d[u] = 0, q.push(u);
-            else d[u] = inf;
-        }
-        d[0] = inf;
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            for (auto v : g[u]) {
-                if (d[r[v]] == inf) {
-                    d[r[v]] = d[u] + 1;
-                    q.push(r[v]);
-                }
-            }
-        }
-        return d[0] != inf;
-    }
-
-    bool dfs(int u) {
-        if (!u) return true;
-        for (auto v : g[u]) {
-            if (d[r[v]] == d[u] + 1 && dfs(r[v])) {
-                l[u] = v;
-                r[v] = u;
-                return true;
-            }
-        }
-        d[u] = inf;
-        return false;
-    }
-
-    int maximum_matching() {
-        int ans = 0;
-        while (bfs()) {
-            for (int u = 1; u <= n; u++) {
-                if (!l[u] && dfs(u)) ans++;
-            }
-        }
-        return ans;
-    }
-
-    vector<pair<int, int>> build_matching() {
-        vector<pair<int, int>> res;
-        for (int u = 1; u <= n; ++u) {
-            if (l[u]) {
-                res.emplace_back(u, l[u] - n); // map back right node ID
-            }
-        }
-        return res;
-    }
-
-    pair<vector<int>, vector<int>> get_min_vertex_cover() {
-        maximum_matching();
-        vector<bool> visL(n + 1, false), visR(m + 1, false);
-
-        function<void(int)> dfs_cover = [&](int u) {
-            visL[u] = true;
-            for (int v : g[u]) {
-                int vr = v - n; // Convert back to original column index
-                if (!visR[vr] && l[u] != v) { // non-matching edge
-                    visR[vr] = true;
-                    if (r[v]) dfs_cover(r[v]);
-                }
-            }
-        };
-
-        for (int u = 1; u <= n; u++) {
-            if (l[u] == 0) dfs_cover(u);
-        }
-
-        vector<int> rows, cols;
-        for (int u = 1; u <= n; u++) {
-            if (!visL[u]) rows.push_back(u);
-        }
-        for (int v = 1; v <= m; v++) {
-            if (visR[v]) cols.push_back(v);
-        }
-
-        return {rows, cols};
-    }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1050,316 +1365,7 @@ void ReadIntLine(vector<int>& numbers)
 
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//    fast max flow
 
-struct FlowEdge {
-    int v, u;
-    long long cap, flow = 0;
-    FlowEdge(int v, int u, long long cap) : v(v), u(u), cap(cap) {}
-};
-
-struct Dinic {
-    const long long flow_inf = 1e18;
-    vector<FlowEdge> edges;
-    vector<vector<int>> adj;
-    int n, m = 0;
-    int s, t;
-    vector<int> level, ptr;
-    queue<int> q;
-
-    Dinic(int n, int s, int t) : n(n), s(s), t(t) {
-        adj.resize(n);
-        level.resize(n);
-        ptr.resize(n);
-    }
-
-    void add_edge(int v, int u, long long cap) {
-        edges.emplace_back(v, u, cap);
-        edges.emplace_back(u, v, 0);
-        adj[v].push_back(m);
-        adj[u].push_back(m + 1);
-        m += 2;
-    }
-
-    bool bfs() {
-        while (!q.empty()) {
-            int v = q.front();
-            q.pop();
-            for (int id : adj[v]) {
-                if (edges[id].cap == edges[id].flow)
-                    continue;
-                if (level[edges[id].u] != -1)
-                    continue;
-                level[edges[id].u] = level[v] + 1;
-                q.push(edges[id].u);
-            }
-        }
-        return level[t] != -1;
-    }
-
-    long long dfs(int v, long long pushed) {
-        if (pushed == 0)
-            return 0;
-        if (v == t)
-            return pushed;
-        for (int& cid = ptr[v]; cid < (int)adj[v].size(); cid++) {
-            int id = adj[v][cid];
-            int u = edges[id].u;
-            if (level[v] + 1 != level[u])
-                continue;
-            long long tr = dfs(u, min(pushed, edges[id].cap - edges[id].flow));
-            if (tr == 0)
-                continue;
-            edges[id].flow += tr;
-            edges[id ^ 1].flow -= tr;
-            return tr;
-        }
-        return 0;
-    }
-
-    long long flow() {
-        long long f = 0;
-        while (true) {
-            fill(level.begin(), level.end(), -1);
-            level[s] = 0;
-            q.push(s);
-            if (!bfs())
-                break;
-            fill(ptr.begin(), ptr.end(), 0);
-            while (long long pushed = dfs(s, flow_inf)) {
-                f += pushed;
-            }
-        }
-        return f;
-    }
-
-    vector<vector<int>> extract_flow_paths(long long flow_limit = -1) {
-    vector<vector<int>> paths;
-
-    while (true) {
-        vector<int> path = {s};
-        vector<bool> visited(n, false);
-        long long pushed = flow_inf;
-
-        bool found = false;
-        function<bool(int)> dfs = [&](int v) -> bool {
-            if (v == t) return true;
-            visited[v] = true;
-            for (int& i = ptr[v]; i < (int)adj[v].size(); ++i) {
-                int id = adj[v][i];
-                FlowEdge& e = edges[id];
-                if (e.flow > 0 && !visited[e.u]) {
-                    path.push_back(e.u);
-                    long long minflow = min(pushed, e.flow);
-                    pushed = minflow;
-                    if (dfs(e.u)) {
-                        e.flow -= pushed;
-                        edges[id ^ 1].flow += pushed;
-                        return true;
-                    }
-                    path.pop_back();
-                }
-            }
-            return false;
-        };
-
-        fill(ptr.begin(), ptr.end(), 0);
-        if (!dfs(s)) break;
-
-        if (flow_limit != -1 && pushed > flow_limit) pushed = flow_limit;
-        paths.push_back(path);
-        if (flow_limit != -1) {
-            flow_limit -= pushed;
-            if (flow_limit <= 0) break;
-        }
-    }
-
-    return paths;
-    }
-
-
-    vector<tuple<int, int, long long>> get_used_edges() {
-        vector<tuple<int, int, long long>> result;
-        for (const auto& e : edges) {
-            if (e.cap > 0 && e.flow > 0) {
-                result.emplace_back(e.v, e.u, e.flow);
-            }
-        }
-        return result;
-    }
-
-    vector<pair<int, int>> min_cut() {
-        // Step 1: Find reachable nodes from s in residual graph
-        vector<bool> vis(n, false);
-        queue<int> q;
-        q.push(s);
-        vis[s] = true;
-        while (!q.empty()) {
-            int v = q.front(); q.pop();
-            for (int id : adj[v]) {
-                int u = edges[id].u;
-                if (!vis[u] && edges[id].flow < edges[id].cap) {
-                    vis[u] = true;
-                    q.push(u);
-                }
-            }
-        }
-
-        // Step 2: Find saturated forward edges from reachable to unreachable
-        vector<pair<int, int>> cut_edges;
-        for (int i = 0; i < (int)edges.size(); i += 2) {
-            const FlowEdge& e = edges[i];
-            if (e.cap == e.flow && e.cap > 0 && vis[e.v] && !vis[e.u]) {
-                cut_edges.emplace_back(e.v, e.u);
-            }
-        }
-
-        return cut_edges;
-    }
-
-};
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//    minimum cost max flow
-
-
-
-struct FlowEdge {
-    int v, u;
-    long long cap, flow = 0, cost;
-    FlowEdge(int v, int u, long long cap, long long cost) : v(v), u(u), cap(cap), cost(cost) {}
-};
-
-struct FlowNetwork {
-    const long long INF = 1e18;
-    int n, m = 0, s, t;
-    vector<FlowEdge> edges;
-    vector<vector<int>> adj;
-    vector<int> level, ptr;
-    queue<int> q;
-
-    FlowNetwork(int n, int s, int t) : n(n), s(s), t(t) {
-        adj.resize(n);
-        level.resize(n);
-        ptr.resize(n);
-    }
-
-    void add_edge(int v, int u, long long cap, long long cost = 0) {
-        edges.emplace_back(v, u, cap, cost);
-        edges.emplace_back(u, v, 0, -cost);
-        adj[v].push_back(m);
-        adj[u].push_back(m + 1);
-        m += 2;
-    }
-
-    // Dinic's Max Flow
-    bool bfs() {
-        fill(level.begin(), level.end(), -1);
-        level[s] = 0;
-        q = queue<int>();
-        q.push(s);
-        while (!q.empty()) {
-            int v = q.front(); q.pop();
-            for (int id : adj[v]) {
-                if (edges[id].cap - edges[id].flow < 1) continue;
-                if (level[edges[id].u] != -1) continue;
-                level[edges[id].u] = level[v] + 1;
-                q.push(edges[id].u);
-            }
-        }
-        return level[t] != -1;
-    }
-
-    long long dfs(int v, long long pushed) {
-        if (pushed == 0) return 0;
-        if (v == t) return pushed;
-        for (int &cid = ptr[v]; cid < (int)adj[v].size(); cid++) {
-            int id = adj[v][cid];
-            int u = edges[id].u;
-            if (level[v] + 1 != level[u] || edges[id].cap - edges[id].flow < 1)
-                continue;
-            long long tr = dfs(u, min(pushed, edges[id].cap - edges[id].flow));
-            if (tr == 0) continue;
-            edges[id].flow += tr;
-            edges[id ^ 1].flow -= tr;
-            return tr;
-        }
-        return 0;
-    }
-
-    long long max_flow() {
-        long long f = 0;
-        while (true) {
-            if (!bfs()) break;
-            fill(ptr.begin(), ptr.end(), 0);
-            while (long long pushed = dfs(s, INF)) {
-                f += pushed;
-            }
-        }
-        return f;
-    }
-
-    // Min Cost Flow of K units using SPFA
-    long long min_cost_flow(long long K) {
-        long long flow = 0, cost = 0;
-        vector<long long> dist(n);
-        vector<int> in_queue(n), parent(n), parent_edge(n);
-
-        while (flow < K) {
-            fill(dist.begin(), dist.end(), INF);
-            dist[s] = 0;
-            queue<int> q;
-            q.push(s);
-            in_queue[s] = 1;
-            parent[s] = -1;
-
-            while (!q.empty()) {
-                int v = q.front(); q.pop();
-                in_queue[v] = 0;
-                for (int i = 0; i < (int)adj[v].size(); i++) {
-                    int id = adj[v][i];
-                    int u = edges[id].u;
-                    if (edges[id].cap - edges[id].flow < 1) continue;
-                    if (dist[u] > dist[v] + edges[id].cost) {
-                        dist[u] = dist[v] + edges[id].cost;
-                        parent[u] = v;
-                        parent_edge[u] = id;
-                        if (!in_queue[u]) {
-                            in_queue[u] = 1;
-                            q.push(u);
-                        }
-                    }
-                }
-            }
-
-            if (dist[t] == INF) break;
-
-            long long push = K - flow;
-            int v = t;
-            while (v != s) {
-                int id = parent_edge[v];
-                push = min(push, edges[id].cap - edges[id].flow);
-                v = parent[v];
-            }
-
-            flow += push;
-            cost += push * dist[t];
-            v = t;
-            while (v != s) {
-                int id = parent_edge[v];
-                edges[id].flow += push;
-                edges[id ^ 1].flow -= push;
-                v = parent[v];
-            }
-        }
-
-        return (flow < K ? -1 : cost);
-    }
-};
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
