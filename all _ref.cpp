@@ -890,7 +890,17 @@ struct FlowNetwork {
 };
 
 
+// important notes
 
+//  maximum bipartite matching == minimum vertex cover(minimum number of nodes that cover all edges)
+//minimum vertex cover (the complement of maximum independent set)
+
+//    ->     max flow == min cut (edges have cost and i want to get minimum cost to disconnect src and sink)
+// maximum edge disjoint path (no two paths share the same edge)
+// maximum independent path (no two paths share the same edge or the same node) (add constraint on vertex)
+
+// minimum path cover (minimum number of paths that covers all graph without sharing edges) (DAG)
+//   = n - max_matching
 
 
 
