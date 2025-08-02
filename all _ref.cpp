@@ -889,6 +889,27 @@ struct FlowNetwork {
     }
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//############################ DS ######################################
 //////////////////////////////////////////////////////////////////////////
 struct Trie {
     const int BIT = 30;
@@ -999,7 +1020,166 @@ struct Trie {
         return trie[idx].f;
     }
 };
+//////////////////////////////////////////////////////////////////////////////////////////////////
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+#define ordered_set tree<int, null_type,less_equal<int>, rb_tree_tag,tree_order_statistics_node_update>
+
+ordered_set st;
+st.order_of_key(number);// number of elem. less than (..)
+find_by_order(index) // get by index
+
+
 /////////////////////////////////////////////////////////////////////////
+struct Node {
+    
+}neutral;
+
+struct lazy_segment_tree{
+    int sz;
+    vector<Node>tree;
+    vector<int>lazy;
+    void init(int n){
+        sz=1;
+        while(sz < n)sz*=2;
+        tree.assign(2*sz,neutral);
+        lazy.assign(2*sz,0);
+    }
+
+    Node merge(Node a,Node b) {
+        Node rt ;
+        rt.mn = min(a.mn , b.mn);
+        return rt;
+    }
+
+    void prop(int node) {
+        tree[node].mn+=lazy[node];
+        if (node*2+1 < 2*sz)
+            lazy[node*2+1]+=lazy[node];
+        if (node*2+2 < 2*sz)
+            lazy[node*2+2]+=lazy[node];
+        lazy[node]=0;
+    }
+
+    void set(int i ,int v,int node,int lx,int rx){
+        if (rx-lx==1) {
+            tree[node].mn = v;
+            return ;
+        }
+        int mid = (lx+rx)/2;
+        if (i<mid)
+            set(i,v,node*2+1,lx,mid);
+        else
+            set(i,v,node*2+2,mid,rx);
+        tree[node] = merge(tree[node*2+1] , tree[node*2+2]);
+    }
+
+    void set(int i,int v){
+        set(i,v,0,0,sz);
+    }
+
+    void update(int l,int r,int val,int node,int s,int e) {
+        prop(node);
+        if (s>=l && e<=r) {
+            lazy[node] += val;
+            prop(node);
+            return ;
+        }
+        if (s>=r || e<=l)return ;
+        int mid = (s+e)>>1;
+        update(l,r,val,node*2+1,s,mid);
+        update(l,r,val,node*2+2,mid,e);
+        tree[node] = merge(tree[node*2+1] , tree[node*2+2]);
+    }
+
+    void update(int l,int r,int val) {
+        update(l,r,val,0,0,sz);
+    }
+
+    Node mn(int l,int r,int node,int s,int e){
+        prop(node);
+        if (s >= r || e <= l) return neutral;
+        if (s>=l && e<=r)return tree[node];
+        int mid=(s+e)/2;
+        return merge( mn(l,r,node*2+1,s,mid),mn(l,r,node*2+2,mid,e));
+    }
+
+    int mn(int l,int r){
+        return mn(l,r,0,0,sz).mn;
+    }
+};
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+set<tuple<int,int,int,int>>mo;
+const int N = 2e5+5;
+int a[N],rs=0,L,R;
+
+void add(int idx) {
+    
+}
+void rem(int idx) {
+    
+}
+
+void pewpew() {
+
+    mo.clear();
+    rs=0,L = 1,R=0;
+    int n,q;cin>>n>>q;
+    int sq = sqrt(n);
+    for (int i =0;i<n;i++)cin>>a[i];
+    for (int i =0;i<q;i++) {
+        int l,r;cin>>l>>r;
+        l--,r--;
+        mo.insert({l/sq,r,l,i});
+    }
+    int ans[q];
+    for (auto it = mo.begin() ; it!=mo.end() ; it++) {
+        auto [tt,r,l,idx] = *it;
+
+        while(L < l)rem(L++);
+        while(L > l)add(--L);
+        while(R < r)add(++R);
+        while(R > r)rem(R--);
+
+        ans[idx] = rs; 
+    }
+    for (int i=0;i<q;i++)
+        cout <<ans[i];
+
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//sqrt
+void build(int blk){
+    for (int i =0;i<26;i++)
+        fr[blk][i].clear();
+    for (int i = blk*sq ; i < min(n,(blk+1)*sq);i++) {
+        if (lazy[blk] != '*')
+            s[i] = lazy[blk];
+        fr[blk][s[i]-'a'].push_back(i);
+    }
+    lazy[blk] = '*';
+}
+
+void update(int l,int r,char c){
+    build(l/sq);
+    build(r/sq);
+    for (int i = l ; i <= r;){
+        if (i %sq == 0 && i + sq - 1 <= r){
+            lazy[i/sq] = c;
+            i+=sq;
+        }
+        else {
+            s[i] = c;
+            i++;
+        }
+    }
+    build(l/sq);
+    build(r/sq);
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 long long FloorSumAP(long long a, long long b, long long c, long long n){
     if(!a) return (b / c) * (n + 1);
     if(a >= c or b >= c) return ( ( n * (n + 1) ) / 2) * (a / c) + (n + 1) * (b / c) + FloorSumAP(a % c, b % c, c, n);
@@ -1040,15 +1220,7 @@ dat query(long long a, long long b, long long c, long long n){
   h = (mul(n, mul(m, m + 1)) - 2 * nxt.g - 2 * nxt.f - f) % MOD;
   return {f, g, h};
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
-using namespace __gnu_pbds;
-#define ordered_set tree<int, null_type,less_equal<int>, rb_tree_tag,tree_order_statistics_node_update>
 
-ordered_set st;
-st.order_of_key(number);// number of elem. less than (..)
-find_by_order(index) // get by index
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 vector<int> rem;
 sort(rem.begin(), rem.end());
@@ -1132,84 +1304,7 @@ ll p(int n, int k) {
     return result;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-struct Node {
-    
-}neutral;
 
-struct lazy_segment_tree{
-    int sz;
-    vector<Node>tree;
-    vector<int>lazy;
-    void init(int n){
-        sz=1;
-        while(sz < n)sz*=2;
-        tree.assign(2*sz,neutral);
-        lazy.assign(2*sz,0);
-    }
-
-    Node merge(Node a,Node b) {
-        Node rt ;
-        rt.mn = min(a.mn , b.mn);
-        return rt;
-    }
-
-    void prop(int node) {
-        tree[node].mn+=lazy[node];
-        if (node*2+1 < 2*sz)
-            lazy[node*2+1]+=lazy[node];
-        if (node*2+2 < 2*sz)
-            lazy[node*2+2]+=lazy[node];
-        lazy[node]=0;
-    }
-
-    void set(int i ,int v,int node,int lx,int rx){
-        if (rx-lx==1) {
-            tree[node].mn = v;
-            return ;
-        }
-        int mid = (lx+rx)/2;
-        if (i<mid)
-            set(i,v,node*2+1,lx,mid);
-        else
-            set(i,v,node*2+2,mid,rx);
-        tree[node] = merge(tree[node*2+1] , tree[node*2+2]);
-    }
-
-    void set(int i,int v){
-        set(i,v,0,0,sz);
-    }
-
-    void update(int l,int r,int val,int node,int s,int e) {
-        prop(node);
-        if (s>=l && e<=r) {
-            lazy[node] += val;
-            prop(node);
-            return ;
-        }
-        if (s>=r || e<=l)return ;
-        int mid = (s+e)>>1;
-        update(l,r,val,node*2+1,s,mid);
-        update(l,r,val,node*2+2,mid,e);
-        tree[node] = merge(tree[node*2+1] , tree[node*2+2]);
-    }
-
-    void update(int l,int r,int val) {
-        update(l,r,val,0,0,sz);
-    }
-
-    Node mn(int l,int r,int node,int s,int e){
-        prop(node);
-        if (s >= r || e <= l) return neutral;
-        if (s>=l && e<=r)return tree[node];
-        int mid=(s+e)/2;
-        return merge( mn(l,r,node*2+1,s,mid),mn(l,r,node*2+2,mid,e));
-    }
-
-    int mn(int l,int r){
-        return mn(l,r,0,0,sz).mn;
-    }
-};
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 double LOG( int x, int k){
     double answer;
     answer = log10( x ) / log10( k );
@@ -1303,45 +1398,7 @@ int sNb(int n, int k) {
     return nCr(n+k-1, n);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-set<tuple<int,int,int,int>>mo;
-const int N = 2e5+5;
-int a[N],rs=0,L,R;
 
-void add(int idx) {
-    
-}
-void rem(int idx) {
-    
-}
-
-void pewpew() {
-
-    mo.clear();
-    rs=0,L = 1,R=0;
-    int n,q;cin>>n>>q;
-    int sq = sqrt(n);
-    for (int i =0;i<n;i++)cin>>a[i];
-    for (int i =0;i<q;i++) {
-        int l,r;cin>>l>>r;
-        l--,r--;
-        mo.insert({l/sq,r,l,i});
-    }
-    int ans[q];
-    for (auto it = mo.begin() ; it!=mo.end() ; it++) {
-        auto [tt,r,l,idx] = *it;
-
-        while(L < l)rem(L++);
-        while(L > l)add(--L);
-        while(R < r)add(++R);
-        while(R > r)rem(R--);
-
-        ans[idx] = rs; 
-    }
-    for (int i=0;i<q;i++)
-        cout <<ans[i];
-
-}
 
 
 
@@ -1370,34 +1427,7 @@ void ReadIntLine(vector<int>& numbers)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//sqrt
-void build(int blk){
-    for (int i =0;i<26;i++)
-        fr[blk][i].clear();
-    for (int i = blk*sq ; i < min(n,(blk+1)*sq);i++) {
-        if (lazy[blk] != '*')
-            s[i] = lazy[blk];
-        fr[blk][s[i]-'a'].push_back(i);
-    }
-    lazy[blk] = '*';
-}
 
-void update(int l,int r,char c){
-    build(l/sq);
-    build(r/sq);
-    for (int i = l ; i <= r;){
-        if (i %sq == 0 && i + sq - 1 <= r){
-            lazy[i/sq] = c;
-            i+=sq;
-        }
-        else {
-            s[i] = c;
-            i++;
-        }
-    }
-    build(l/sq);
-    build(r/sq);
-}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //matrix exponentiation
 matrix mul(matrix &a , matrix &b)
