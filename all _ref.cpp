@@ -1180,244 +1180,6 @@ void update(int l,int r,char c){
     build(r/sq);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-long long FloorSumAP(long long a, long long b, long long c, long long n){
-    if(!a) return (b / c) * (n + 1);
-    if(a >= c or b >= c) return ( ( n * (n + 1) ) / 2) * (a / c) + (n + 1) * (b / c) + FloorSumAP(a % c, b % c, c, n);
-    long long m = (a * n + b) / c;
-    return m * n - FloorSumAP(c, c - b - 1, a, m - 1);
-} // find sum of floor((a * i + b) / c) for i in [0, n] in O(log(n))
-// from: https://asfjwd.github.io/2020-04-24-floor-sum-ap/
-
-
-
-//  g ->  sum of floor((a * i + b) / c) for i in [0, n] in O(log(n))
-//  h -> sum of (floor((a * i + b) / c) )^2 for i in [0, n] in O(log(n))
-
-struct dat {
-  long long f, g, h;
-  dat(long long f = 0, long long g = 0, long long h = 0) : f(f), g(g), h(h) {};
-};
-
-long long mul(long long a, long long b){
-  return (a * b) % MOD;
-}
-
-dat query(long long a, long long b, long long c, long long n){
-  if(!a) return {mul(n + 1, b / c), mul(mul(mul(b / c, n), n + 1), inv2), mul(mul(n + 1, b / c), b /c)};
-  long long f, g, h; 
-  dat nxt;
-  if(a >= c or b >= c){
-    nxt = query(a % c, b % c, c, n);
-    f = (nxt.f + mul(mul(mul(n, n + 1), inv2), a / c) + mul(n + 1, b / c)) % MOD;
-    g = (nxt.g + mul(a / c, mul(mul(n, n + 1), mul(2 * n + 1, inv6))) + mul(mul(b / c, mul(n, n + 1)), inv2)) % MOD;
-    h = (nxt.h + 2 * mul(b / c, nxt.f) + 2 * mul(a / c, nxt.g) + mul(mul(a / c, a / c), mul(mul(n, n + 1), mul(2 * n + 1, inv6))) + mul(mul(b / c, b / c), n + 1) + mul(mul(a / c, b / c), mul(n, n + 1)) ) % MOD;   
-    return {f, g, h};
-  }
-  long long m = (a * n + b ) / c;
-  nxt = query(c, c - b - 1, a, m - 1);
-  f = (mul(m, n) - nxt.f) % MOD;
-  g = mul( mul(m, mul(n, n + 1)) - nxt.h - nxt.f, inv2);
-  h = (mul(n, mul(m, m + 1)) - 2 * nxt.g - 2 * nxt.f - f) % MOD;
-  return {f, g, h};
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-vector<int> rem;
-sort(rem.begin(), rem.end());
-rem.erase(unique(rem.begin(), rem.end()), rem.end());   
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//   math and hashing
-const int N =  , base[2]={31,37},mod=1e9+7;
-int pw[2][N];
-int add(int a,int b) {
-    return (a+b+mod)%mod;
-}
-int mul(int a,int b) {
-    return(a*b)%mod;
-}
-int fp (int x,int n){
-    int res=1;
-    while(n>0){
-        if (n%2==1)
-            res = mul(res,x);
-        x = mul(x,x);
-        n/=2;
-    }
-    return res;
-}
-int midINV(int a) {
-    return fp(a,mod-2);
-}
-void init() {
-    for (int b=0;b<2;b++) {
-        pw[b][0]=1;
-        for (int i =1;i<N;i++)
-            pw[b][i] = mul(pw[b][i-1],base[b]);
-    }
-}
-vector<pair<int,int>>pre;
-
-void HASH(string&s) {
-    pair<int,int>sum;
-    for (int i=0;i<s.size();i++) {
-        sum.F = mul(sum.F,base[0]);
-        sum.F = add(sum.F,s[i]-'a'+1);
-        sum.S = mul(sum.S,base[1]);
-        sum.S = add(sum.S,s[i]-'a'+1);
-        pre.pb(sum);
-    }
-}
-pair<int,int>get(int l,int r) {
-    pair<int,int>rt;
-    rt.F = add(pre[r].F ,  - mul((l?pre[l-1].F:0) , pw[0][r-l+1])) ;
-    rt.S = add(pre[r].S ,  - mul((l?pre[l-1].S:0) , pw[1][r-l+1])) ;
-    return rt;
-}
-//------------------------
-/*
-to get sum 2^(0*n) + 2^(1*n) + 2^(2*n) + 2^(3*n) + 2^(4*n) + .... + 2^(k*n)
-
- the formula is
-    (   (2 ^ ((k+1)*n)) - 1   ) /   (  2^n - 1   )
-    
-    
-    
- to get 
-	a^1 + a^2 + a^3 + .... + a^k
-    (a * (a^k - 1)) / (a-1)
-    this doesn't work for a = 1
-*/
-long long c(int n, int k) {
-     long long result = 1;
-    for (int i = 0; i < k; ++i) {
-        result *= (n - i);
-        result /= (i + 1);
-    }
-    return result;
-}
-
-ll p(int n, int k) {
-    ll result = 1;
-    for (int i = 0; i < k; ++i) {
-        result *= (n - i);
-    }
-    return result;
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-double LOG( int x, int k){
-    double answer;
-    answer = log10( x ) / log10( k );
-    return answer;
-}
-
-const int N = 2e5+7, P1 = 31, P2 = 37, mod= 1e9 + 7;
-
-bitset<N> notPrime;
-void sieve() {
-    notPrime[0] = notPrime[1] = 1;
-    for(int i = 2; i*i < N; i++) {
-        if(notPrime[i]) continue;
-
-        for(int j = i*i; j < N; j+=i)
-            notPrime[j] = 1;
-    }
-}
-
-int spf[N];
-void SPF() {
-    for(int i = 1; i < N; i++)
-        spf[i] = i;
-    for(int i = 2; i*i < N; i++) {
-        if(spf[i] != i) continue;
-
-        for(int j = i*i; j < N; j+=i)
-            spf[j] = min(spf[j], i);
-    }
-}
-
-short spf[N];
-void SPF() {
-    for(int i = 2; i*i < N; i++) {
-        if(spf[i] != 0) continue;
-
-        for(int j = i*i; j < N; j+=i) {
-            if(spf[j] == 0)
-                spf[j] = i;
-        }
-    }
-}
-
-int mul(int a, int b) {
-    return (1LL * a * b) % mod;
-}
- 
-int add(int a, int b) {
-    a = (a + mod) % mod;
-    b = (b + mod) % mod;
-    return (a + b) % mod;
-}
- 
-int fp(int b, int p) {
-    if (b == 1 or p == 0)
-        return 1;
- 
-    int ret = fp(b, p >> 1);
-    ret = mul(ret, ret);
- 
-    if (p & 1)
-        ret = mul(ret, b);
- 
-    return ret;
-}
- 
-int inv(int a) {
-    return fastPower(a, mod-2);
-}
-
-int divi(int a, int b) {
-    return mult(a, inv(b));
-}
- 
-int fact[N];
-
-
-int nPr(int n, int r) {
-    if(r > n) return 0;
-    if(n < 0 || r < 0) return 0;
-    return divi(fact[n], fact[n-r]);
-}
-
-int nCr(int n, int r) {
-    if(r > n) return 0;
-    if(n < 0 || r < 0) return 0;
-    return divi(fact[n], mult(fact[r], fact[n-r]));
-}
-
-int sNb(int n, int k) {
-    return nCr(n+k-1, n);
-}
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-int 
-mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
-
-unsigned long long
-mt19937_64 rng(std::chrono::steady_clock::now().time_since_epoch().count());
-//------------------------------
-void ReadIntLine(vector<int>& numbers)
-{
-    string line;
-    getline(cin, line);
-
-    istringstream is(line);
-
-    numbers = vector<int>(istream_iterator<int>(is), istream_iterator<int>());
-}
 
 
 
@@ -1425,45 +1187,22 @@ void ReadIntLine(vector<int>& numbers)
 
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//matrix exponentiation
-matrix mul(matrix &a , matrix &b)
-{
-    int n = a.size() , m = b[0].size();
-    matrix res = zero(n , m);
-
-    for(int i=0; i<n; i++)
-    {
-        for(int j=0; j<m; j++)
-        {
-            for(int k=0; k<n; k++)
-            {
-                res[i][j] += a[i][k]*b[k][j];
-                res[i][j] %= mod;
-            }
-        }
-    }
-    return res;
-}
-
-matrix matrix_fp(matrix &a , ll p)
-{
-    if (p==1)
-        return a;
-
-    matrix res = matrix_fp(a , p/2);
-    res = mul(res , res);
-    if (p%2) res = mul(res , a);
-
-    return res;
-}
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// string
+
+
+
+
+
+
+
+
+
+
+// ################################ string ###############################
+//////////////////////////////////////////////////////////////////////////
 
 void Z(){
     int l = 0 , r = 0;
@@ -1688,8 +1427,295 @@ vector<int>suffix_array(string &tmp){
         k = max(0ll , k-1);
     }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+
+
+
+
+
+
+
+
+// ###################################### math #######################################
+//////////////////////////////////////////////////////////////////////////////////////
+
+long long FloorSumAP(long long a, long long b, long long c, long long n){
+    if(!a) return (b / c) * (n + 1);
+    if(a >= c or b >= c) return ( ( n * (n + 1) ) / 2) * (a / c) + (n + 1) * (b / c) + FloorSumAP(a % c, b % c, c, n);
+    long long m = (a * n + b) / c;
+    return m * n - FloorSumAP(c, c - b - 1, a, m - 1);
+} // find sum of floor((a * i + b) / c) for i in [0, n] in O(log(n))
+// from: https://asfjwd.github.io/2020-04-24-floor-sum-ap/
+
+
+
+//  g ->  sum of floor((a * i + b) / c) for i in [0, n] in O(log(n))
+//  h -> sum of (floor((a * i + b) / c) )^2 for i in [0, n] in O(log(n))
+
+struct dat {
+  long long f, g, h;
+  dat(long long f = 0, long long g = 0, long long h = 0) : f(f), g(g), h(h) {};
+};
+
+long long mul(long long a, long long b){
+  return (a * b) % MOD;
+}
+
+dat query(long long a, long long b, long long c, long long n){
+  if(!a) return {mul(n + 1, b / c), mul(mul(mul(b / c, n), n + 1), inv2), mul(mul(n + 1, b / c), b /c)};
+  long long f, g, h; 
+  dat nxt;
+  if(a >= c or b >= c){
+    nxt = query(a % c, b % c, c, n);
+    f = (nxt.f + mul(mul(mul(n, n + 1), inv2), a / c) + mul(n + 1, b / c)) % MOD;
+    g = (nxt.g + mul(a / c, mul(mul(n, n + 1), mul(2 * n + 1, inv6))) + mul(mul(b / c, mul(n, n + 1)), inv2)) % MOD;
+    h = (nxt.h + 2 * mul(b / c, nxt.f) + 2 * mul(a / c, nxt.g) + mul(mul(a / c, a / c), mul(mul(n, n + 1), mul(2 * n + 1, inv6))) + mul(mul(b / c, b / c), n + 1) + mul(mul(a / c, b / c), mul(n, n + 1)) ) % MOD;   
+    return {f, g, h};
+  }
+  long long m = (a * n + b ) / c;
+  nxt = query(c, c - b - 1, a, m - 1);
+  f = (mul(m, n) - nxt.f) % MOD;
+  g = mul( mul(m, mul(n, n + 1)) - nxt.h - nxt.f, inv2);
+  h = (mul(n, mul(m, m + 1)) - 2 * nxt.g - 2 * nxt.f - f) % MOD;
+  return {f, g, h};
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////// 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//   math and hashing
+const int N =  , base[2]={31,37},mod=1e9+7;
+int pw[2][N];
+int add(int a,int b) {
+    return (a+b+mod)%mod;
+}
+int mul(int a,int b) {
+    return(a*b)%mod;
+}
+int fp (int x,int n){
+    int res=1;
+    while(n>0){
+        if (n%2==1)
+            res = mul(res,x);
+        x = mul(x,x);
+        n/=2;
+    }
+    return res;
+}
+int midINV(int a) {
+    return fp(a,mod-2);
+}
+void init() {
+    for (int b=0;b<2;b++) {
+        pw[b][0]=1;
+        for (int i =1;i<N;i++)
+            pw[b][i] = mul(pw[b][i-1],base[b]);
+    }
+}
+vector<pair<int,int>>pre;
+
+void HASH(string&s) {
+    pair<int,int>sum;
+    for (int i=0;i<s.size();i++) {
+        sum.F = mul(sum.F,base[0]);
+        sum.F = add(sum.F,s[i]-'a'+1);
+        sum.S = mul(sum.S,base[1]);
+        sum.S = add(sum.S,s[i]-'a'+1);
+        pre.pb(sum);
+    }
+}
+pair<int,int>get(int l,int r) {
+    pair<int,int>rt;
+    rt.F = add(pre[r].F ,  - mul((l?pre[l-1].F:0) , pw[0][r-l+1])) ;
+    rt.S = add(pre[r].S ,  - mul((l?pre[l-1].S:0) , pw[1][r-l+1])) ;
+    return rt;
+}
+//------------------------
+/*
+to get sum 2^(0*n) + 2^(1*n) + 2^(2*n) + 2^(3*n) + 2^(4*n) + .... + 2^(k*n)
+
+ the formula is
+    (   (2 ^ ((k+1)*n)) - 1   ) /   (  2^n - 1   )
+    
+    
+    
+ to get 
+	a^1 + a^2 + a^3 + .... + a^k
+    (a * (a^k - 1)) / (a-1)
+    this doesn't work for a = 1
+*/
+long long c(int n, int k) {
+     long long result = 1;
+    for (int i = 0; i < k; ++i) {
+        result *= (n - i);
+        result /= (i + 1);
+    }
+    return result;
+}
+
+ll p(int n, int k) {
+    ll result = 1;
+    for (int i = 0; i < k; ++i) {
+        result *= (n - i);
+    }
+    return result;
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//matrix exponentiation
+matrix mul(matrix &a , matrix &b)
+{
+    int n = a.size() , m = b[0].size();
+    matrix res = zero(n , m);
+
+    for(int i=0; i<n; i++)
+    {
+        for(int j=0; j<m; j++)
+        {
+            for(int k=0; k<n; k++)
+            {
+                res[i][j] += a[i][k]*b[k][j];
+                res[i][j] %= mod;
+            }
+        }
+    }
+    return res;
+}
+
+matrix matrix_fp(matrix &a , ll p)
+{
+    if (p==1)
+        return a;
+
+    matrix res = matrix_fp(a , p/2);
+    res = mul(res , res);
+    if (p%2) res = mul(res , a);
+
+    return res;
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+double LOG( int x, int k){
+    double answer;
+    answer = log10( x ) / log10( k );
+    return answer;
+}
+
+const int N = 2e5+7, P1 = 31, P2 = 37, mod= 1e9 + 7;
+
+bitset<N> notPrime;
+void sieve() {
+    notPrime[0] = notPrime[1] = 1;
+    for(int i = 2; i*i < N; i++) {
+        if(notPrime[i]) continue;
+
+        for(int j = i*i; j < N; j+=i)
+            notPrime[j] = 1;
+    }
+}
+
+int spf[N];
+void SPF() {
+    for(int i = 1; i < N; i++)
+        spf[i] = i;
+    for(int i = 2; i*i < N; i++) {
+        if(spf[i] != i) continue;
+
+        for(int j = i*i; j < N; j+=i)
+            spf[j] = min(spf[j], i);
+    }
+}
+
+short spf[N];
+void SPF() {
+    for(int i = 2; i*i < N; i++) {
+        if(spf[i] != 0) continue;
+
+        for(int j = i*i; j < N; j+=i) {
+            if(spf[j] == 0)
+                spf[j] = i;
+        }
+    }
+}
+
+int mul(int a, int b) {
+    return (1LL * a * b) % mod;
+}
+ 
+int add(int a, int b) {
+    a = (a + mod) % mod;
+    b = (b + mod) % mod;
+    return (a + b) % mod;
+}
+ 
+int fp(int b, int p) {
+    if (b == 1 or p == 0)
+        return 1;
+ 
+    int ret = fp(b, p >> 1);
+    ret = mul(ret, ret);
+ 
+    if (p & 1)
+        ret = mul(ret, b);
+ 
+    return ret;
+}
+ 
+int inv(int a) {
+    return fastPower(a, mod-2);
+}
+
+int divi(int a, int b) {
+    return mult(a, inv(b));
+}
+ 
+int fact[N];
+
+
+int nPr(int n, int r) {
+    if(r > n) return 0;
+    if(n < 0 || r < 0) return 0;
+    return divi(fact[n], fact[n-r]);
+}
+
+int nCr(int n, int r) {
+    if(r > n) return 0;
+    if(n < 0 || r < 0) return 0;
+    return divi(fact[n], mult(fact[r], fact[n-r]));
+}
+
+int sNb(int n, int k) {
+    return nCr(n+k-1, n);
+}
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+int 
+mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+
+unsigned long long
+mt19937_64 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+//------------------------------
+void ReadIntLine(vector<int>& numbers)
+{
+    string line;
+    getline(cin, line);
+
+    istringstream is(line);
+
+    numbers = vector<int>(istream_iterator<int>(is), istream_iterator<int>());
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+vector<int> rem;
+sort(rem.begin(), rem.end());
+rem.erase(unique(rem.begin(), rem.end()), rem.end());  
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
