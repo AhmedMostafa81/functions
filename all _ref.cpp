@@ -2,6 +2,8 @@
 ios::sync_with_stdio(0);cin.tie(0);cout.tie(0);
 ///////////////////////////////////////////////////////////////////////
 
+// LCA
+
 const int N =  , LOG = ;
 vector<int>gr[N];
 int n,m,q,in[N],out[N] , tim , up[N][LOG];
@@ -618,12 +620,6 @@ int sNb(int n, int k) {
     return nCr(n+k-1, n);
 }
 
-void precalFactorial() {
-    fact[0] = 1;
-
-    for(int i =1 ; i < N; i++)
-        fact[i] = mult(fact[i-1], i);
-}
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 set<tuple<int,int,int,int>>mo;
 const int N = 2e5+5;
@@ -782,6 +778,118 @@ void tar(int node,int par){
         new_gr[col[y]].push_back(col[x]);
     }
 
+
+
+// articulation point
+
+int n; // number of nodes
+vector<vector<int>> adj; // adjacency list of graph
+
+vector<bool> visited;
+vector<int> tin, low;
+int timer;
+
+void dfs(int v, int p = -1) {
+    visited[v] = true;
+    tin[v] = low[v] = timer++;
+    int children=0;
+    for (int to : adj[v]) {
+        if (to == p) continue;
+        if (visited[to]) {
+            low[v] = min(low[v], tin[to]);
+        } else {
+            dfs(to, v);
+            low[v] = min(low[v], low[to]);
+            if (low[to] >= tin[v] && p!=-1)
+                IS_CUTPOINT(v);
+            ++children;
+        }
+    }
+    if(p == -1 && children > 1)
+        IS_CUTPOINT(v);
+}
+
+void find_cutpoints() {
+    timer = 0;
+    visited.assign(n, false);
+    tin.assign(n, -1);
+    low.assign(n, -1);
+    for (int i = 0; i < n; ++i) {
+        if (!visited[i])
+            dfs (i);
+    }
+}
+
+// Bi connected == block cut tree
+
+const int N = ;
+int dfn[N], lowlink[N], tim = 0;
+stack<int> st;
+bool inS[N], art[N];
+vector<vector<int>> comp;   
+vector<int> gr[N];
+
+void tarjan(int node, int par) {               
+    dfn[node] = lowlink[node] = ++tim;
+    st.push(node);
+    inS[node] = true;
+    int cnt = 0;
+
+    for (const int& ch : gr[node]) {          
+        if (ch == par) continue;
+
+        if (!dfn[ch]) {
+            tarjan(ch, node);
+            lowlink[node] = min(lowlink[node], lowlink[ch]);
+
+            if (lowlink[ch] >= dfn[node]) {
+                if (node != par) art[node] = true;
+                comp.push_back({node});
+                while (comp.back().back() != ch)
+                    comp.back().push_back(st.top()), st.pop();
+            }
+            ++cnt;
+        }
+        else if (inS[ch])
+            lowlink[node] = min(lowlink[node], dfn[ch]);
+    }
+    if (cnt > 1 && node == par)
+        art[node] = true;
+
+}
+
+vector<vector<int>> new_gr(2 * N);
+int ID[N];
+
+signed main() {
+
+    // input
+    
+    
+    
+    for (int node = 1; node <= n; ++node)
+        if (!dfn[node])
+            tarjan(node, node);
+
+    int cur = 1;
+    // articulation points
+    for (int node = 1; node <= n; ++node)
+        if (art[node])
+            ID[node] = cur++;
+    // components
+    for (const vector<int>& v : comp) {
+        for (const int& node : v) {
+            if (art[node]) {
+                new_gr[cur].push_back(ID[node]);
+                new_gr[ID[node]].push_back(cur);
+            }
+            else ID[node] = cur;
+        }
+        ++cur;
+    }
+   
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 int n, k;
 vector<vector<int>> g;
@@ -814,53 +922,114 @@ int main() {
         if (mt[i] != -1)
             printf("%d %d\n", mt[i] + 1, i + 1);
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-template < typename T = int > struct Sparse_Table {
 
-    struct Node {
-        ll val;
-        Node(ll V = 0) : val(V) {}
-        Node operator = (const T& rhs) {
-            val = rhs;
-            return *this;
-        }
-    };
 
-    int n, LOG;
-    vector < vector < Node > > table;
-    vector < int > Bin_Log;
-    Node DEFAULT;
+// fast matching
 
-    Sparse_Table(vector < T >& vec){
-        n = sz(vec), DEFAULT = 0, LOG = __lg(n) + 1;
-        table = vector < vector < Node > > (n + 10, vector < Node > (LOG));
-        Bin_Log = vector < int > (n + 10);
-        for(int i = 2; i <= n; i++)
-            Bin_Log[i] = Bin_Log[i >> 1] + 1;
-        for(int i = 0; i < n; i++)
-            table[i][0] = vec[i];
-        Build_Table();
+struct HopcroftKarp { // one based
+    static const int inf = 1e16;
+    int n , m;
+    vector<int> l, r, d;
+    vector<vector<int>> g;
+
+    HopcroftKarp(int _n, int _m) {
+        n = _n;
+        m = _m;
+        int p = _n + _m + 1;
+        g.resize(p);
+        l.resize(p, 0);
+        r.resize(p, 0);
+        d.resize(p, 0);
     }
 
-    Node operation(Node a, Node b){
-        Node res;
-        res.val = a.val + b.val;
+    void add_edge(int u, int v) {
+        g[u].push_back(v + n); // right id is increased by n
+    }
+
+    bool bfs() {
+        queue<int> q;
+        for (int u = 1; u <= n; u++) {
+            if (!l[u]) d[u] = 0, q.push(u);
+            else d[u] = inf;
+        }
+        d[0] = inf;
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+            for (auto v : g[u]) {
+                if (d[r[v]] == inf) {
+                    d[r[v]] = d[u] + 1;
+                    q.push(r[v]);
+                }
+            }
+        }
+        return d[0] != inf;
+    }
+
+    bool dfs(int u) {
+        if (!u) return true;
+        for (auto v : g[u]) {
+            if (d[r[v]] == d[u] + 1 && dfs(r[v])) {
+                l[u] = v;
+                r[v] = u;
+                return true;
+            }
+        }
+        d[u] = inf;
+        return false;
+    }
+
+    int maximum_matching() {
+        int ans = 0;
+        while (bfs()) {
+            for (int u = 1; u <= n; u++) {
+                if (!l[u] && dfs(u)) ans++;
+            }
+        }
+        return ans;
+    }
+
+    vector<pair<int, int>> build_matching() {
+        vector<pair<int, int>> res;
+        for (int u = 1; u <= n; ++u) {
+            if (l[u]) {
+                res.emplace_back(u, l[u] - n); // map back right node ID
+            }
+        }
         return res;
     }
 
-    void Build_Table(){
-        for(int log = 1; log < LOG; log++)
-            for(int i = 0; i + (1 << log) - 1 < n; i++)
-                table[i][log] = operation(table[i][log - 1], table[i + (1 << (log - 1))][log - 1]);
+    pair<vector<int>, vector<int>> get_min_vertex_cover() {
+        maximum_matching();
+        vector<bool> visL(n + 1, false), visR(m + 1, false);
+
+        function<void(int)> dfs_cover = [&](int u) {
+            visL[u] = true;
+            for (int v : g[u]) {
+                int vr = v - n; // Convert back to original column index
+                if (!visR[vr] && l[u] != v) { // non-matching edge
+                    visR[vr] = true;
+                    if (r[v]) dfs_cover(r[v]);
+                }
+            }
+        };
+
+        for (int u = 1; u <= n; u++) {
+            if (l[u] == 0) dfs_cover(u);
+        }
+
+        vector<int> rows, cols;
+        for (int u = 1; u <= n; u++) {
+            if (!visL[u]) rows.push_back(u);
+        }
+        for (int v = 1; v <= m; v++) {
+            if (visR[v]) cols.push_back(v);
+        }
+
+        return {rows, cols};
     }
 
-    Node query_1(int L, int R){
-        int log = Bin_Log[R - L + 1];
-        return operation(table[L][log], table[R - (1 << log) + 1][log]);
-    }
-    
 
-};
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 int 
 mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
@@ -878,12 +1047,3 @@ void ReadIntLine(vector<int>& numbers)
     numbers = vector<int>(istream_iterator<int>(is), istream_iterator<int>());
 }
 
-void ReadDoubleLine(vector<string>& numbers)
-{
-    string line;
-    getline(cin, line);
-
-    istringstream is(line);
-
-    numbers = vector<string>(istream_iterator<string>(is), istream_iterator<string>());
-}
