@@ -117,3 +117,36 @@ vector<int>suffix_array(string &tmp){
         lcp[pi] = k;
         k = max(0ll , k-1);
     }
+
+
+
+
+vector<int>match(string s1 , string s2) {
+    vector<int>lcp;
+    string s = s1 + "*" + s2;
+    vector<int>help = suffix_array(s , lcp);
+    int me = -1;
+    for (int i = 0; i < help.size() ; i++)
+        if (help[i] == s1.size() + 1)
+            me = i;
+    vector<int>v(s1.size() , 0);
+    int cur = me-1 , mn = 1e10;
+    while (cur >= 0) {
+        mn = min(mn ,lcp[cur+1]);
+        if (mn >= s2.size())
+            v[help[cur]] = 1;
+        else
+            break;
+        cur--;
+    }
+    cur = me + 1 , mn = 1e10;
+    while (cur < help.size()) {
+        mn = min(mn ,lcp[cur]);
+        if (mn >= s2.size())
+            v[help[cur]] = 1;
+        else
+            break;
+        cur++;
+    }
+    return v;
+}
