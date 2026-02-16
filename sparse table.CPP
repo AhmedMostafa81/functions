@@ -29,6 +29,33 @@ struct ST { // sparse table version 1
         int j=log[r-l+1];
         return merge(t[j][l], t[j][r-(1<<j)+1]);
     }
+
+    // for suffix array        ==========================
+
+     int get_left_less(int idx , int val) {
+        int s = 0 , e = idx , mid , rt = -1;
+        while (s <= e) {
+            mid = (s + e) >> 1;
+            if (get(mid , idx) < val)
+                rt = mid , s = mid + 1;
+            else
+                e = mid - 1;
+        }
+        return rt;
+    }
+
+    int get_right_less(int idx , int val) {
+        int s = idx , e = n-1 , mid , rt = n;
+        while (s <= e) {
+            mid = (s + e) >> 1;
+            if (get(idx , mid) < val)
+                rt = mid , e = mid - 1;
+            else
+                s = mid + 1;
+        }
+        return rt;
+    }
+    
 };
 
 
