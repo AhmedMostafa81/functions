@@ -1,3 +1,11 @@
+The geometric mean of the positive divisors of X equals sqrt(X)
+
+geometric mean of a1 , a2 , a3 , a4
+is 4th_root(a1*a2*a3*a4)
+
+
+
+
 /* ----------- Miller-Rabin ----------- */
  
 bool isPrime(ll n) {
