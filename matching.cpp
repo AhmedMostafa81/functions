@@ -2,37 +2,54 @@
 //minimum vertex cover (the complement of maximum independent set)
 
 
-int n, k;
-vector<vector<int>> g;
-vector<int> mt;
-vector<bool> used;
+#include <bits/stdc++.h>
+using namespace std;
 
-bool try_kuhn(int v) {
-    if (used[v])
-        return false;
-    used[v] = true;
-    for (int to : g[v]) {
-        if (mt[to] == -1 || try_kuhn(mt[to])) {
-            mt[to] = v;
-            return true;
-        }
-    }
-    return false;
-}
+struct Kuhn {
+    int n, m;                       // left: 0..n-1, right: 0..m-1
+    vector<vector<int>> adj;        // adj[v] = list of right nodes
+    vector<int> matchR;             // matchR[to] = matched left node or -1
+    vector<bool> used;
 
-int main() {
-    //... reading the graph ...
-
-    mt.assign(k, -1);
-    for (int v = 0; v < n; ++v) {
+    Kuhn(int _n, int _m) : n(_n), m(_m) {
+        adj.assign(n, {});
+        matchR.assign(m, -1);
         used.assign(n, false);
-        try_kuhn(v);
     }
 
-    for (int i = 0; i < k; ++i)
-        if (mt[i] != -1)
-            printf("%d %d\n", mt[i] + 1, i + 1);
-}
+    void addEdge(int u, int v) {    // u in [0..n-1], v in [0..m-1]
+        adj[u].push_back(v);
+    }
+
+    bool dfs(int v) {
+        if (used[v]) return false;
+        used[v] = true;
+        for (int to : adj[v]) {
+            if (matchR[to] == -1 || dfs(matchR[to])) {
+                matchR[to] = v;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    int maximumMatching() {
+        int match = 0;
+        for (int v = 0; v < n; ++v) {
+            fill(used.begin(), used.end(), false);
+            if (dfs(v)) ++match;
+        }
+        return match;
+    }
+
+    vector<pair<int,int>> getMatchingPairs() {
+        vector<pair<int,int>> res;
+        for (int v = 0; v < m; ++v)
+            if (matchR[v] != -1)
+                res.emplace_back(matchR[v], v);
+        return res;
+    }
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
