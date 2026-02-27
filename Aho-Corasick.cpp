@@ -142,7 +142,7 @@ struct Aho_Corasick {
     }
 
     struct Node {
-        int next[tot]{} , go[N]{};
+        int next[tot]{} , go[tot]{};
         int par = 0,  link = 0;
         //int fr = 0;
         vector<int>IDs;
