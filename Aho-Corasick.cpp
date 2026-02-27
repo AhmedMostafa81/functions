@@ -153,7 +153,7 @@ struct Aho_Corasick {
     vector<Node>trie;
     Aho_Corasick() {
         trie.emplace_back(0,'$');
-        gr.emplace_back();
+        //gr.emplace_back();
     }
     void add(const string&s , int idx) {
         int node = 0;
@@ -168,13 +168,14 @@ struct Aho_Corasick {
         }
         trie[node].IDs.push_back(idx);
     }
-
+    //vector<int>bfs_order;
     void build() {
         queue<int> q;
         q.push(0);
         while (q.size()) {
             int node = q.front();
             q.pop();
+            //bfs_order.push_back(node);
             //gr[trie[node].link].push_back(node);
             for (int idx: trie[trie[node].link].IDs)
                 trie[node].IDs.emplace_back(idx);
@@ -195,19 +196,8 @@ struct Aho_Corasick {
     }
 
     // void solve() {
-    //     queue<int>q;
-    //     vector<int>all;
-    //     q.push(0);
-    //     while (q.size()) {
-    //         int node = q.front();
-    //         q.pop();
-    //         all.push_back(node);
-    //         for (int i  = 0 ;i  < tot ; i++)
-    //             if (~trie[node].next[i])
-    //                 q.push(trie[node].next[i]);
-    //     }
-    //     for (int i = all.size() - 1 ; i >= 0; i--) {
-    //         int node = all[i];
+    //     for (int i = bfs_order.size() - 1 ; i >= 0; i--) {
+    //         int node = bfs_order[i];
     //         for (auto ch:gr[node]) {
     //             trie[node].fr += trie[ch].fr;
     //         }
