@@ -153,6 +153,7 @@ struct Aho_Corasick {
     vector<Node>trie;
     Aho_Corasick() {
         trie.emplace_back(0,'$');
+        gr.emplace_back();
     }
     void add(const string&s , int idx) {
         int node = 0;
