@@ -177,7 +177,7 @@ struct Aho_Corasick {
             q.pop();
             //bfs_order.push_back(node);
             //gr[trie[node].link].push_back(node);
-            for (int idx: trie[trie[node].link].IDs)
+            for (int idx: trie[trie[node].link].IDs)// n^2 if patterns are not unique, otherwise n * sqrt
                 trie[node].IDs.emplace_back(idx);
             for (int c = 0 ; c < tot ; c++) {
                 int ch = trie[node].next[c];
