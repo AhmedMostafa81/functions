@@ -126,3 +126,118 @@ signed main() {
         maybe();
 
 }
+
+
+
+
+// iterative
+
+
+const int N = , tot = ;
+int ans[N] ;
+
+struct Aho_Corasick {
+    int id(char c) {
+        // CODE
+    }
+
+    struct Node {
+        int next[tot]{} , go[N]{};
+        int par = 0,  link = 0;
+        //int fr = 0;
+        vector<int>IDs;
+        char par_c;
+        Node(int p  , char c ) : par(p) , par_c(c) {};
+    };
+    //vector<vector<int>>gr;
+    vector<Node>trie;
+    Aho_Corasick() {
+        trie.emplace_back(0,'$');
+    }
+    void add(const string&s , int idx) {
+        int node = 0;
+        for (auto ch:s) {
+            int c = id(ch);
+            if (trie[node].next[c] == 0) {
+                trie[node].next[c] = trie.size();
+                trie.emplace_back(node , ch);
+                //gr.emplace_back();
+            }
+            node = trie[node].next[c] ;
+        }
+        trie[node].IDs.push_back(idx);
+    }
+
+    void build() {
+        queue<int> q;
+        q.push(0);
+        while (q.size()) {
+            int node = q.front();
+            q.pop();
+            //gr[trie[node].link].push_back(node);
+            for (int idx: trie[trie[node].link].IDs)
+                trie[node].IDs.emplace_back(idx);
+            for (int c = 0 ; c < tot ; c++) {
+                int ch = trie[node].next[c];
+                if (ch == 0)
+                    trie[node].next[c] = trie[trie[node].link].next[c];
+                else {
+                    trie[ch].link = node ? trie[trie[node].link].next[c] : 0;
+                    q.push(ch);
+                }
+            }
+        }
+    }
+
+    int go(int node, char c) {
+        return trie[node].next[id(c)];
+    }
+
+    // void solve() {
+    //     queue<int>q;
+    //     vector<int>all;
+    //     q.push(0);
+    //     while (q.size()) {
+    //         int node = q.front();
+    //         q.pop();
+    //         all.push_back(node);
+    //         for (int i  = 0 ;i  < tot ; i++)
+    //             if (~trie[node].next[i])
+    //                 q.push(trie[node].next[i]);
+    //     }
+    //     for (int i = all.size() - 1 ; i >= 0; i--) {
+    //         int node = all[i];
+    //         for (auto ch:gr[node]) {
+    //             trie[node].fr += trie[ch].fr;
+    //         }
+    //         for (auto idx:trie[node].IDs)
+    //             ans[idx] = trie[node].fr;
+    //     }
+    // }
+
+
+};
+
+void maybe() {
+
+    int n ; cin >> n ;
+    Aho_Corasick Aho;
+    for (int i  = 0 ;i  < n ;i++) {
+        string tmp ; cin >> tmp;
+        Aho.add(tmp, i);
+    }
+    Aho.build();
+    int q;cin >> q;
+    while (q--) {
+        string s; cin >> s;
+        int node = 0 ;
+        for (auto c:s) {
+            node = Aho.go(node , c);
+            for (auto idx:Aho.trie[node].IDs)
+                ans[idx]++;
+        }
+    }
+    for (int i  = 0; i < n ;i++)
+        cout << ans[i] << '\n';
+
+}
