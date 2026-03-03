@@ -49,6 +49,51 @@ struct Kuhn {
                 res.emplace_back(matchR[v], v);
         return res;
     }
+
+    pair<vector<int>,vector<int>> minVertexCover() {
+    vector<int> matchL(n, -1);
+    for (int r = 0; r < m; r++)
+        if (matchR[r] != -1)
+            matchL[matchR[r]] = r;
+
+    vector<int> visL(n, 0), visR(m, 0);
+    queue<int> q;
+
+    // start from free left vertices
+    for (int i = 0; i < n; i++) {
+        if (matchL[i] == -1) {
+            visL[i] = 1;
+            q.push(i);
+        }
+    }
+
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+
+        for (int v : adj[u]) {
+            if (v == matchL[u]) continue;   // skip matched edge L->R
+            if (visR[v]) continue;
+
+            visR[v] = 1;
+
+            if (matchR[v] != -1 && !visL[matchR[v]]) {
+                visL[matchR[v]] = 1;
+                q.push(matchR[v]);
+            }
+        }
+    }
+
+    vector<int> leftCover, rightCover;
+
+    for (int i = 0; i < n; i++)
+        if (!visL[i]) leftCover.push_back(i);
+
+    for (int i = 0; i < m; i++)
+        if (visR[i]) rightCover.push_back(i);
+
+    return {leftCover, rightCover};
+}
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
