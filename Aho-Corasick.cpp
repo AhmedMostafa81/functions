@@ -143,28 +143,27 @@ struct Aho_Corasick {
 
     struct Node {
         int next[tot]{};
-        int par = 0,  link = 0;
-        //int fr = 0;
-        vector<int>IDs;
-        char par_c;
-        Node(int p  , char c ) : par(p) , par_c(c) {};
+        int par = 0, link = 0;
+        vector<int> IDs;
+        int last = 0;          // <-- nearest output link (node index) on suffix path, 0 if none
+        Node(int p = 0) : par(p) {}
     };
     //vector<vector<int>>gr;
-    vector<Node>trie;
+    vector<Node> trie;
     Aho_Corasick() {
-        trie.emplace_back(0,'$');
+        trie.emplace_back();
         //gr.emplace_back();
     }
-    void add(const string&s , int idx) {
+    void add(const string &s, int idx) {
         int node = 0;
-        for (auto ch:s) {
+        for (auto ch : s) {
             int c = id(ch);
             if (trie[node].next[c] == 0) {
                 trie[node].next[c] = trie.size();
-                trie.emplace_back(node , ch);
+                trie.emplace_back(node);
                 //gr.emplace_back();
             }
-            node = trie[node].next[c] ;
+            node = trie[node].next[c];
         }
         trie[node].IDs.push_back(idx);
     }
@@ -177,14 +176,19 @@ struct Aho_Corasick {
             q.pop();
             //bfs_order.push_back(node);
             //gr[trie[node].link].push_back(node);
-            for (int idx: trie[trie[node].link].IDs)// n^2 if patterns are not unique, otherwise n * sqrt
+            // keep existing behavior: copy IDs from suffix-link node
+            for (int idx : trie[trie[node].link].IDs)// n^2 if patterns are not unique, otherwise n * sqrt
                 trie[node].IDs.emplace_back(idx);
-            for (int c = 0 ; c < tot ; c++) {
+            for (int c = 0; c < tot; c++) {
                 int ch = trie[node].next[c];
                 if (ch == 0)
                     trie[node].next[c] = trie[trie[node].link].next[c];
                 else {
                     trie[ch].link = node ? trie[trie[node].link].next[c] : 0;
+                    if (!trie[ trie[ch].link ].IDs.empty())
+                        trie[ch].last = trie[ch].link;
+                    else
+                        trie[ch].last = trie[ trie[ch].link ].last;
                     q.push(ch);
                 }
             }
@@ -193,6 +197,19 @@ struct Aho_Corasick {
 
     int go(int node, char c) {
         return trie[node].next[id(c)];
+    }
+
+    // helper: returns the nearest node that contains a pattern
+    // including `node` itself (returns `node` if it has IDs),
+    // otherwise returns `last` (0 if none).
+    int nearest_output_node_including_self(int node) {
+        if (!trie[node].IDs.empty()) return node;
+        return trie[node].last;
+    }
+
+    // optional: return nearest output strictly below (i.e. excluding node itself)
+    int nearest_output(int node) {
+        return trie[node].last;
     }
 
     // void solve() {
@@ -208,7 +225,6 @@ struct Aho_Corasick {
 
 
 };
-
 void maybe() {
 
     int n ; cin >> n ;
