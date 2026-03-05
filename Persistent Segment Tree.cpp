@@ -145,3 +145,95 @@ long long query(int L_node, int R_node, int st, int ed, int k){
     return query(L[L_node], L[R_node], st, M, k) + query(R[L_node], R[R_node], M + 1, ed, k);
 }
 
+
+
+
+
+//   bigger version
+
+#define M ((st + ed) >> 1)
+
+const int MAXM = 100002;
+const int SZ = MAXM * 40 + 5;
+
+// Persistent Segment Tree
+
+int ptr = 1;
+int L[SZ], R[SZ];
+
+struct Node {
+    long long sum = 0;
+    int pref = 0 , suf = 0 , mx = 0  , len = 0 ; // neutral
+
+    static Node leaf(int v){
+        Node t;
+        t.sum = v;
+        t.pref = max(0,v);
+        t.suf  = t.pref;
+        t.mx   = t.pref;
+        t.len  = 1;
+        return t;
+    }
+
+    static Node merge(const Node &a,const Node &b){
+        if(!a.len) return b;
+        if(!b.len) return a;
+        Node c;
+        c.len = a.len + b.len;
+        c.sum = a.sum + b.sum;
+        c.pref = max((long long)a.pref , a.sum + b.pref);
+        c.suf  = max((long long)b.suf , b.sum + a.suf);
+        c.mx   = max({a.mx , b.mx , a.suf + b.pref});
+        return c;
+    }
+};
+
+Node Seg[SZ];
+
+void init_segment_tree(){
+    ptr = 1;
+    L[0] = R[0] = 0;
+    Seg[0] = Node();   // neutral node
+}
+
+int new_leaf(int v){
+    int p = ptr++;
+    L[p] = R[p] = 0;
+    Seg[p] = Node::leaf(v);
+    return p;
+}
+
+int Merge(int a,int b){
+    int p = ptr++;
+    L[p] = a;
+    R[p] = b;
+    Seg[p] = Node::merge(Seg[a], Seg[b]);
+    return p;
+}
+
+int build(int st,int ed){
+    if(st==ed) return new_leaf(-2e5);
+    return Merge(build(st,M), build(M+1,ed));
+}
+
+int update(int old,int st,int ed,int pos,int val){
+    if(st==ed) return new_leaf(val);
+
+    if(pos<=M)
+        return Merge(update(L[old],st,M,pos,val), R[old]);
+    else
+        return Merge(L[old], update(R[old],M+1,ed,pos,val));
+}
+
+Node query(int node,int st,int ed,int l,int r){
+    if(r<st || l>ed) return Node();
+
+    if(l<=st && ed<=r)
+        return Seg[node];
+
+    Node a = query(L[node],st,M,l,r);
+    Node b = query(R[node],M+1,ed,l,r);
+
+    return Node::merge(a,b);
+}
+
