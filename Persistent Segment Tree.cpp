@@ -78,3 +78,65 @@ void maybe() {
     }
 
 }
+
+
+
+
+
+
+// without pointers     (faster)
+
+
+#define M ((st + ed) >> 1)
+
+const int MAXM = 5000;          // max compressed positions
+const int SZ = MAXM * 20 + 5;     // node pool size (MAXM * log(MAXM)) (best practice is MAXM * 20)
+
+int ptr = 1;
+int L[SZ], R[SZ];
+long long sum[SZ]; // sum of each node in segment tree
+int A[MAXM + 5]; // array (input)
+
+
+//Persistent Segment Tree
+
+void init_segment_tree(){ // initialize segment tree
+    ptr = 1;
+    L[0] = R[0] = 0;
+    sum[0] = 0;
+}
+
+int leaf(int v){
+    int p = ptr++;
+    L[p] = R[p] = 0;
+    sum[p] = v;
+    return p;
+}
+
+int Merge(int a, int b){
+    int p = ptr++;
+    L[p] = a; R[p] = b;
+    sum[p] = sum[a] + sum[b];
+    return p;
+}
+
+int build(int st, int ed){
+    if (st == ed) return leaf(A[st]);
+    return Merge(build(st , M) , build(M + 1 , ed));
+}
+
+int update(int old, int st, int ed, int pos, int new_val){
+    if (st == ed)
+        return leaf(new_val);
+    if (pos <= M)
+        return Merge(update(L[old], st, M, pos, new_val),R[old]);
+    else
+        return Merge(L[old] , update(R[old], M + 1, ed, pos, new_val));
+}
+
+long long query(int L_node, int R_node, int st, int ed, int k){
+    if (st >= k) return sum[R_node] - sum[L_node];
+    if (ed < k) return 0;
+    return query(L[L_node], L[R_node], st, M, k) + query(R[L_node], R[R_node], M + 1, ed, k);
+}
+
