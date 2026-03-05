@@ -95,7 +95,7 @@ void maybe() {
 #define M ((st + ed) >> 1)
 
 const int MAXM = 5000;          // max compressed positions
-const int SZ = MAXM * 40 + 5;     // node pool size (MAXM * log(MAXM)) (best practice is MAXM * 20)
+const int SZ = MAXM * 40 + 5;     // node pool size (2 * MAXM * log(MAXM)) (best practice is MAXM * 40)
 
 int ptr = 1;
 int L[SZ], R[SZ];
