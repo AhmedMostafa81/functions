@@ -1,3 +1,8 @@
+//For any index i, find the nearest or farthest R such that the range [i, R] contains at most k distinct numbers, in O(log n) time.
+
+
+
+
 
 const int N = 3e4+10;
 int fr[N];
