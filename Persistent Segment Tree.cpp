@@ -1,6 +1,36 @@
 //For any index i, find the nearest or farthest R such that the range [i, R] contains at most k distinct numbers, in O(log n) time.
 
 
+/*
+if you make it with pointers
+you can make this trick to make it (10× faster than `new`)
+
+const int MAXNODE = 8000000;
+
+Node pool[MAXNODE];
+int ptr = 0;
+
+Node* newnode(unsigned long long val) {
+    Node* x = &pool[ptr++];
+    x->l = x->r = nullptr;
+    x->XOR = val;
+    return x;
+}
+
+Node* merge(Node* l, Node* r) {
+    Node* x = &pool[ptr++];
+    x->l = l;
+    x->r = r;
+    x->XOR = 0;
+    if (l) x->XOR ^= l->XOR;
+    if (r) x->XOR ^= r->XOR;
+    return x;
+}
+
+return new Node(0);   ->   return newnode(0);
+return new Node(l , r); -> return merge(l , r);
+*/
+
 
 
 
