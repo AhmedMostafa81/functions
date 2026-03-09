@@ -1,28 +1,36 @@
-const int N =  , LOG = ;
-vector<int>gr[N];
-int n,m,q,in[N],out[N] , tim , up[N][LOG];
+const int N = , LOG = ;
+vector<int> gr[N];
+int n, m, q, in[N], out[N], tim, up[N][LOG];
 
-void pre(int node = 0 ,int par = 0){
+void pre(int node = 1, int par = 1){
     in[node] = ++tim;
     up[node][0] = par;
-    for (int i = 1 ; i < LOG ; i++)
+
+    for (int i = 1; i < LOG; i++)
         up[node][i] = up[up[node][i-1]][i-1];
-    for (auto ch:gr[node])
-        pre(ch , node);
+
+    for (auto ch : gr[node]){
+        if (ch == par) continue;
+        pre(ch, node);
+    }
+
     out[node] = ++tim;
 }
 
-bool if_anc(int x,int y){
+bool if_anc(int x, int y){
     return in[x] <= in[y] && out[x] >= out[y];
 }
-int LCA(int x,int y){
-    if (if_anc(x,y))
+
+int LCA(int x, int y){
+    if (if_anc(x, y))
         return x;
-    if (if_anc(y,x))
+    if (if_anc(y, x))
         return y;
-    for (int i = LOG-1;i>=0;i--)
-        if (!if_anc(up[x][i],y))
+
+    for (int i = LOG - 1; i >= 0; i--)
+        if (!if_anc(up[x][i], y))
             x = up[x][i];
+
     return up[x][0];
 }
 
