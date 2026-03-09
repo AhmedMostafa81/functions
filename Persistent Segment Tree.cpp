@@ -5,7 +5,7 @@
 if you make it with pointers
 you can make this trick to make it (10× faster than `new`)
 
-const int MAXNODE = 8000000;
+const int MAXNODE = (40~50) * N;
 
 Node pool[MAXNODE];
 int ptr = 0;
@@ -125,7 +125,7 @@ void maybe() {
 #define M ((st + ed) >> 1)
 
 const int MAXM = ;          // max compressed positions
-const int SZ = MAXM * 40 + 5;     // node pool size (2 * MAXM * log(MAXM)) (best practice is MAXM * 40)
+const int SZ = MAXM * 40 + 5;     // node pool size (2 * MAXM * log(MAXM)) (best practice is MAXM * (40~50))
 
 int ptr = 1;
 int L[SZ], R[SZ];
