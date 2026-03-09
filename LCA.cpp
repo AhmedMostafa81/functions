@@ -1,6 +1,6 @@
 const int N = , LOG = ;
 vector<int> gr[N];
-int n, m, q, in[N], out[N], tim, up[N][LOG];
+int  in[N], out[N], tim, up[N][LOG];
 
 void pre(int node = 1, int par = 1){
     in[node] = ++tim;
