@@ -47,6 +47,12 @@ deque<int> manacher_even_odd(string &s){
     return manacher_odd(t);
 }
 
+bool check_pal(int l , int r , deque<int>&de) {
+    int i_l = l * 2 + 1 , i_r = r * 2 + 1;
+    int mid = (i_r + i_l) >> 1;
+    return mid + de[mid] - 1 >= i_r;
+}
+
 signed main() {
 /* ^^^ */    AhmedPlusPlus    /* ^^^ */
 
