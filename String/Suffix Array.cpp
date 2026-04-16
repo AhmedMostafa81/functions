@@ -117,3 +117,73 @@ vector<int>suffix_array(string &tmp){
         lcp[pi] = k;
         k = max(0ll , k-1);
     }
+-------------------------------------------------------------------------
+    // get Kth subarray or how many subarrays equal
+    struct SP { // sparse table
+
+    int n , lg;
+    vector<vector<int>>t;
+    vector<int>log;
+    int merge(int a,int b){return min(a , b) ; }
+
+    SP(vector<int>&a) {
+        n = a.size();
+        log.assign(n+1 , 0);
+        for (int i  = 2 ; i <= n ; i++)
+            log[i] = log[i/2] + 1;
+        lg = log[n] + 1;
+        t.assign(lg , vector<int>(n));
+
+        for (int i  = 0; i < n ; i++)
+            t[0][i] = a[i];
+        for (int j = 1;  j < lg ; j++)
+            for (int i  = 0; i + (1 << j) <= n ;i++)
+                t[j][i] = merge(t[j-1][i] , t[j-1][i + (1 << (j-1))]);
+    }
+
+    int get(int l,  int r) {
+        int j = log[r-l+1];
+        return merge(t[j][l] , t[j][r - (1 << j) + 1]);
+    }
+
+    int get_first_less_than(int idx , int val) {
+        int s = idx , e = n-1 , mid , rt = n;
+        while (s <= e) {
+            mid = (s + e) >> 1;
+            if (get(idx , mid) < val)
+                rt = mid , e = mid - 1;
+            else
+                s = mid + 1;
+        }
+        return rt;
+    }
+
+};
+
+void maybe() {
+
+    string s;cin>>s;
+    int n = s.size();
+    int k ; cin >> k;
+    if (k > 1ll * n *(n + 1) / 2)
+        return void(cout << "No such line.\n");
+    vector<int>lcp , sa;
+    sa = suffix_adday(s , lcp);
+
+    SP table(lcp);
+
+    int cur = 0 ;
+    for (int i = 1 ; i < lcp.size() ; i++) {
+        int from = sa[i];
+        for (int to = sa[i] + lcp[i] ; to < n ; to++) {
+            int sz = to - from + 1;
+            int cnt = table.get_first_less_than(i + 1 , sz) - i ;
+            if (cur + cnt >= k) {
+                cout << s.substr(from , sz) << '\n';
+                return ;
+            }
+            cur += cnt;
+        }
+    }
+
+}
