@@ -73,51 +73,8 @@ struct persistent_segment_tree {
     }
 };
 
-int a[N] ;
 
-void maybe() {
-
-    int n ; cin >> n ;
-    set<int>st;
-    for (int i = 0; i < n ; i++)
-        cin >> a[i] , st.insert(a[i]);
-    int cur = 0 ;
-    map<int,int>id;
-    for (auto num:st)
-        id[num] = cur++;
-    persistent_segment_tree seg;
     vector<Node*>v = {seg.build(0,n+5)};
-    for (int  i = 0 ; i < n ; i++) {
-        fr[id[a[i]]]++;
-        v.push_back(seg.update(v.back() , 0 , n+5 , id[a[i]] , fr[id[a[i]]]));
-    }
-    int q;cin >> q;
-    int last_ans = 0 ;
-    while (q--) {
-        int a , b , c; cin >> a >> b >> c;
-        int i = a ^ last_ans;
-        int j = b ^ last_ans;
-        int k = c ^ last_ans;
-        i = max(i , 1);
-        j = min(j , n);
-        if (i > j)
-            last_ans = 0 ;
-        else {
-            auto it = st.upper_bound(k);
-            if (it != st.end())
-                last_ans = seg.query(v[i-1],v[j],0,n+5,id[*it]);
-            else
-                last_ans = 0;
-        }
-        cout << last_ans << '\n';
-    }
-
-}
-
-
-
-
-
 
 // without pointers     (faster)
 
