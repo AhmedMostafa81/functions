@@ -4,6 +4,11 @@ to get sum 2^(0*n) + 2^(1*n) + 2^(2*n) + 2^(3*n) + 2^(4*n) + .... + 2^(k*n)
  the formula is
     (   (2 ^ ((k+1)*n)) - 1   ) /   (  2^n - 1   )
 
+
+
+  to get	a^1 + a^2 + a^3 + .... + a^k
+    the formula is (a * (a^k - 1)) / (a-1)
+    this doesn't work for a = 1
 */
 
 double LOG( int x, int k){
@@ -37,28 +42,6 @@ void SPF() {
     }
 }
 
-short spf[N];
-void SPF() {
-    for(int i = 2; i*i < N; i++) {
-        if(spf[i] != 0) continue;
-
-        for(int j = i*i; j < N; j+=i) {
-            if(spf[j] == 0)
-                spf[j] = i;
-        }
-    }
-}
-
-int mul(int a, int b) {
-    return (1LL * a * b) % mod;
-}
- 
-int add(int a, int b) {
-    a = (a + mod) % mod;
-    b = (b + mod) % mod;
-    return (a + b) % mod;
-}
- 
 int fp(int b, int p) {
     if (b == 1 or p == 0)
         return 1;
@@ -82,7 +65,6 @@ int divi(int a, int b) {
  
 int fact[N];
 
-
 int nPr(int n, int r) {
     if(r > n) return 0;
     if(n < 0 || r < 0) return 0;
@@ -98,10 +80,20 @@ int nCr(int n, int r) {
 int sNb(int n, int k) {
     return nCr(n+k-1, n);
 }
+--------------------------------------------------
+long long c(int n, int k) {
+     long long result = 1;
+    for (int i = 0; i < k; ++i) {
+        result *= (n - i);
+        result /= (i + 1);
+    }
+    return result;
+}
 
-void precalFactorial() {
-    fact[0] = 1;
-
-    for(int i =1 ; i < N; i++)
-        fact[i] = mult(fact[i-1], i);
+ll p(int n, int k) {
+    ll result = 1;
+    for (int i = 0; i < k; ++i) {
+        result *= (n - i);
+    }
+    return result;
 }
