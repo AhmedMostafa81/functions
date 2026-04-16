@@ -5,7 +5,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-struct Kuhn {
+struct Kuhn { // O(V * E)
     int n, m;                       // left: 0..n-1, right: 0..m-1
     vector<vector<int>> adj;        // adj[v] = list of right nodes
     vector<int> matchR;             // matchR[to] = matched left node or -1
@@ -102,7 +102,7 @@ struct Kuhn {
 #include <bits/stdc++.h>
 using namespace std;
 
-struct HopcroftKarp {
+struct HopcroftKarp { // E * sqrt(V)
     int n, m;                              // n = #left (1..n), m = #right (1..m)
     vector<vector<int>> adj;               // adj[u] = list of right vertices (1..m)
     vector<int> pairLeft, pairRight;       // pairLeft[u]=v (0 if free), pairRight[v]=u (0 if free)
@@ -213,22 +213,3 @@ struct HopcroftKarp {
         return {leftCover, rightCover};
     }
 };
-
-// small usage example
-/*
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    int n, m, E;
-    cin >> n >> m >> E;
-    HopcroftKarp hk(n, m);
-    for (int i = 0; i < E; ++i) {
-        int u, v; cin >> u >> v;   // u in [1..n], v in [1..m]
-        hk.addEdge(u, v);
-    }
-    int ans = hk.maximumMatching();
-    cout << ans << '\n';
-    for (auto [u, v] : hk.getMatchingPairs()) cout << u << ' ' << v << '\n';
-}
-*/
-
