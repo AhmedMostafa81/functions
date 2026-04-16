@@ -7,6 +7,7 @@
 
 
 // slow max flow
+// O(V * E^2)
 
 #include<bits/stdc++.h>
 using namespace std;
@@ -85,7 +86,7 @@ signed main() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //    fast max flow
 
-struct FlowEdge {
+struct FlowEdge { // O(E * sqrt(V))
     int v, u;
     long long cap, flow = 0;
     FlowEdge(int v, int u, long long cap) : v(v), u(u), cap(cap) {}
@@ -258,16 +259,20 @@ struct Dinic {
 
 //    minimum cost max flow
 
-
+#include <bits/stdc++.h>
+using namespace std;
 
 struct FlowEdge {
     int v, u;
     long long cap, flow = 0, cost;
-    FlowEdge(int v, int u, long long cap, long long cost) : v(v), u(u), cap(cap), cost(cost) {}
+
+    FlowEdge(int v, int u, long long cap, long long cost)
+        : v(v), u(u), cap(cap), cost(cost) {}
 };
 
 struct FlowNetwork {
     const long long INF = 1e18;
+
     int n, m = 0, s, t;
     vector<FlowEdge> edges;
     vector<vector<int>> adj;
@@ -288,14 +293,16 @@ struct FlowNetwork {
         m += 2;
     }
 
-    // Dinic's Max Flow
+    // Dinic BFS
     bool bfs() {
         fill(level.begin(), level.end(), -1);
         level[s] = 0;
         q = queue<int>();
         q.push(s);
+
         while (!q.empty()) {
-            int v = q.front(); q.pop();
+            int v = q.front();
+            q.pop();
             for (int id : adj[v]) {
                 if (edges[id].cap - edges[id].flow < 1) continue;
                 if (level[edges[id].u] != -1) continue;
@@ -306,16 +313,21 @@ struct FlowNetwork {
         return level[t] != -1;
     }
 
+    // Dinic DFS
     long long dfs(int v, long long pushed) {
         if (pushed == 0) return 0;
         if (v == t) return pushed;
+
         for (int &cid = ptr[v]; cid < (int)adj[v].size(); cid++) {
             int id = adj[v][cid];
             int u = edges[id].u;
+
             if (level[v] + 1 != level[u] || edges[id].cap - edges[id].flow < 1)
                 continue;
+
             long long tr = dfs(u, min(pushed, edges[id].cap - edges[id].flow));
             if (tr == 0) continue;
+
             edges[id].flow += tr;
             edges[id ^ 1].flow -= tr;
             return tr;
@@ -343,19 +355,24 @@ struct FlowNetwork {
 
         while (flow < K) {
             fill(dist.begin(), dist.end(), INF);
+            fill(in_queue.begin(), in_queue.end(), 0);
+            fill(parent.begin(), parent.end(), -1);
+            fill(parent_edge.begin(), parent_edge.end(), -1);
+
             dist[s] = 0;
             queue<int> q;
             q.push(s);
             in_queue[s] = 1;
-            parent[s] = -1;
 
             while (!q.empty()) {
-                int v = q.front(); q.pop();
+                int v = q.front();
+                q.pop();
                 in_queue[v] = 0;
-                for (int i = 0; i < (int)adj[v].size(); i++) {
-                    int id = adj[v][i];
+
+                for (int id : adj[v]) {
                     int u = edges[id].u;
                     if (edges[id].cap - edges[id].flow < 1) continue;
+
                     if (dist[u] > dist[v] + edges[id].cost) {
                         dist[u] = dist[v] + edges[id].cost;
                         parent[u] = v;
@@ -380,6 +397,7 @@ struct FlowNetwork {
 
             flow += push;
             cost += push * dist[t];
+
             v = t;
             while (v != s) {
                 int id = parent_edge[v];
@@ -391,94 +409,17 @@ struct FlowNetwork {
 
         return (flow < K ? -1 : cost);
     }
-};
 
-/////////////////////////////////////////////////////////////
-//ANOTHER TEMPLATE  (bedoo)
-#include<bits/stdc++.h>
-
-#define ll long long
-#define f first
-#define s second
-using namespace std;
-const int N = 1e2+5; //size of nodes
-
-const int inf = 1000000010;
-struct Edge {
-    int to, cost, cap, flow, backEdge;
-};
-struct MCMF {
-    int s, t, n;
-    vector<Edge> g[N];
-    MCMF(int _s, int _t, int _n) {
-        s = _s, t = _t, n = _n+1;
-    }
-    void addEdge(int u, int v, int cost, int cap) {
-        Edge e1 = { v, cost, cap, 0, (int)g[v].size() };
-        Edge e2 = { u, -cost, 0, 0, (int)g[u].size() };
-        g[u].push_back(e1); g[v].push_back(e2);
-    }
-    pair<int, int> minCostMaxFlow() {
-        int flow = 0, cost = 0;
-        vector<int> state(n), from(n), from_edge(n), d(n);
-        deque<int> q;
-        while (true) {
-            for (int i = 0; i < n; i++)
-                state[i] = 2, d[i] = inf, from[i] = -1;
-            state[s] = 1; q.clear(); q.push_back(s); d[s] = 0;
-            while (!q.empty()) {
-                int v = q.front(); q.pop_front(); state[v] = 0;
-                for (int i = 0; i < (int) g[v].size(); i++) {
-                    Edge e = g[v][i];
-                    if (e.flow >= e.cap || d[e.to] <= d[v] + e.cost)
-                        continue;
-                    int to = e.to; d[to] = d[v] + e.cost;
-                    from[to] = v; from_edge[to] = i;
-                    if (state[to] == 1) continue;
-                    if (!state[to] || (!q.empty() && d[q.front()] > d[to]))
-                        q.push_front(to);
-                    else q.push_back(to);
-                    state[to] = 1;
-                }
+    // Returns all original forward edges that carry positive flow.
+    // Each tuple = {from, to, used_flow, cost}
+    vector<tuple<int, int, long long, long long>> get_used_edges() const {
+        vector<tuple<int, int, long long, long long>> res;
+        for (int i = 0; i < m; i += 2) {
+            const FlowEdge &e = edges[i];   // only forward/original edges
+            if (e.cap > 0 && e.flow > 0) {
+                res.emplace_back(e.v, e.u, e.flow, e.cost);
             }
-            if (d[t] == inf) break;
-            int it = t, addflow = inf;
-            while (it != s) {
-                addflow = min(addflow,
-                              g[from[it]][from_edge[it]].cap
-                              - g[from[it]][from_edge[it]].flow);
-                it = from[it];
-            }
-            it = t;
-            while (it != s) {
-                g[from[it]][from_edge[it]].flow += addflow;
-                g[it][g[from[it]][from_edge[it]].backEdge].flow -= addflow;
-                cost += g[from[it]][from_edge[it]].cost * addflow;
-                it = from[it];
-            }
-            flow += addflow;
         }
-        return {cost,flow};
+        return res;
     }
 };
-
-int main()
-{
-    ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-
-    MCMF G(0 , 3 , 3);
-    G.addEdge(0 , 1 , 3 , 2); //cost , cap
-    G.addEdge(1 , 3 , 2 , 1);
-    G.addEdge(0 , 2 , 2 , 2);
-    G.addEdge(2 , 3 , 4 , 7);
-
-    pair<ll,ll> pr = G.minCostMaxFlow(); //cost , flow
-    cout << pr.f << ' ' << pr.s << '\n';
-
-    return 0;
-}
-
-
-
-
-
