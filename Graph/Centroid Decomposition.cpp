@@ -49,3 +49,39 @@ int query(int node) {
     }
     return ;
 }
+--------------------------------------------------------------------
+// another version
+
+int MX_DEP;
+
+void solve(int node , int p , bool Fill , int dep) {
+    MX_DEP = max(MX_DEP , dep);
+    if (Fill)
+        fr[dep]++;
+    else if (k >= dep)
+        ans += fr[k - dep];
+    for (auto ch:gr[node])
+        if (!del[ch] && ch != p)
+            solve(ch , node , Fill , dep + 1);
+}
+
+void decomposition(int node) {
+    get_sz(node , -1);
+    int cen = centroid(node , -1 , sz[node]);
+    del[cen] = true;
+    MX_DEP = 0 ;
+    fr[0] = 1; // add this node
+    for (auto ch:gr[cen]) {
+        if (!del[ch]) {
+            solve(ch , cen , 0 , 1);
+            solve(ch , cen , 1 , 1);
+        }
+    }
+    for (int i = 0; i <= MX_DEP ; i++)
+        fr[i] = 0;
+    for (auto ch:gr[cen])
+        if (!del[ch])
+            decomposition(ch);
+}
+
+    
